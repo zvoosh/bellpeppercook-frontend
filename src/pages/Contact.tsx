@@ -1,12 +1,15 @@
+import { useTranslation } from "react-i18next";
 import bellpepper from "/icons/bellpepper-green.svg";
 
-const contacts = [
-  { label: "Email", value: "Dusan.ilic1999@gmail.com" },
-  { label: "Support", value: "vlastimir.ilic@gmail.com" },
-  { label: "Telephone", value: "+381603311553" },
-];
-
 export default function Contact() {
+  const { t } = useTranslation();
+
+  const contacts = [
+    { label: t("contact.email"), value: "Dusan.ilic1999@gmail.com" },
+    { label: t("contact.support"), value: "vlastimir.ilic@gmail.com" },
+    { label: t("contact.telephone"), value: "+381603311553" },
+  ];
+
   const copyToClipboard = async (value: string) => {
     await navigator.clipboard.writeText(value);
   };
@@ -14,7 +17,6 @@ export default function Contact() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center py-16">
       <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16 w-full max-w-2xl">
-
         <img
           src={bellpepper}
           alt="BellPepperCooks icon"
@@ -34,12 +36,11 @@ export default function Contact() {
                 onClick={() => copyToClipboard(value)}
                 className="text-xs text-green-400 hover:text-green-300 transition-colors cursor-pointer select-none"
               >
-                click to copy →
+                {t("contact.copyHint")}
               </button>
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );

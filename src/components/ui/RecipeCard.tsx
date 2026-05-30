@@ -7,10 +7,11 @@ import {
 } from "react-icons/fa";
 import coverImg from "/homepage/eggsveggies.jpg";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../context";
 
 interface RecipeCardProps {
   id: string;
-  title: string;
+  title: { en: string; sr: string } | string; // podržava oba formata
   category?: { id: string; name: string; slug: string } | null;
   cookTimeMinutes?: number;
   averageRating?: number;
@@ -21,7 +22,7 @@ interface RecipeCardProps {
 
 export const RecipeCard = ({
   id,
-  title = "Untitled Recipe",
+  title,
   category,
   cookTimeMinutes = 0,
   averageRating = 0,
@@ -29,7 +30,10 @@ export const RecipeCard = ({
   saved = false,
   onBookmarkToggle,
 }: RecipeCardProps) => {
+  const { t } = useLanguage();
   const image = coverImageUrl ?? coverImg;
+  const displayTitle =
+    t(title as { en: string; sr: string }) || "Untitled Recipe";
   const cookTime = cookTimeMinutes > 0 ? `${cookTimeMinutes} min` : "—";
   const rating = Math.round(averageRating);
 
@@ -38,11 +42,10 @@ export const RecipeCard = ({
       to={`/recipes/${id}`}
       className="group w-full cursor-pointer bg-white/5 rounded-2xl overflow-hidden border border-white/8 hover:border-white/16 hover:bg-white/8 transition-all duration-200"
     >
-      {/* Thumbnail */}
       <div className="relative aspect-[10/9] overflow-hidden">
         <img
           src={image}
-          alt={title}
+          alt={displayTitle}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 select-none"
         />
         <div className="absolute inset-0 bg-black/20" />
@@ -61,13 +64,12 @@ export const RecipeCard = ({
         </button>
       </div>
 
-      {/* Body */}
       <div className="p-4">
         <span className="text-xs font-medium text-green-400 uppercase tracking-wide">
           {category?.name ?? "Uncategorized"}
         </span>
         <h3 className="text-sm font-medium text-white mt-1 mb-3 leading-snug line-clamp-2">
-          {title}
+          {displayTitle}
         </h3>
         <div className="flex items-center justify-between">
           <div className="flex gap-0.5">

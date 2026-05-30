@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { RecipeCard } from "../components";
 import { useRecipes } from "../hooks/useRecipes";
 import { useCategories } from "../hooks/useCategories";
@@ -21,7 +22,8 @@ function useDebounce(value: string, delay: number) {
 }
 
 export default function Explore() {
-  const [activeFilter, setActiveFilter] = useState("All");
+  const { t } = useTranslation();
+  const [activeFilter, setActiveFilter] = useState("all");
   const [searchInput, setSearchInput] = useState("");
   const [limit, setLimit] = useState(LIMIT);
 
@@ -32,11 +34,9 @@ export default function Explore() {
   const { toggle, isBookmarked } = useBookmarks();
 
   const selectedCategory = categories.find(
-    (c: Category) => c.name === activeFilter,
+    (c: Category) => c.name.toLowerCase() === activeFilter,
   );
 
-  // instead of pagination, just increase the limit
-  // this avoids all accumulation/reset complexity
   const { data, isFetching, isLoading } = useRecipes({
     search: debouncedSearch || undefined,
     categoryId: selectedCategory?.id,
@@ -57,7 +57,7 @@ export default function Explore() {
   const recipes = response?.data ?? [];
 
   const displayedRecipes =
-    activeFilter === "Bookmarked"
+    activeFilter === "bookmarked"
       ? recipes.filter((r) => isBookmarked(r.id))
       : recipes;
 
@@ -65,7 +65,7 @@ export default function Explore() {
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    setLimit(LIMIT); // reset limit when filter changes
+    setLimit(LIMIT);
     setSearchInput("");
   };
 
@@ -79,45 +79,46 @@ export default function Explore() {
   };
 
   const FILTERS = [
-    "All",
-    ...categories.map((c: Category) => c.name),
-    "Bookmarked",
+    { key: "all", label: t("explore.all") },
+    ...categories.map((c: Category) => ({ key: c.name.toLowerCase(), label: c.name })),
+    { key: "bookmarked", label: t("explore.bookmarked") },
   ];
 
   const isSearching = isFetching && debouncedSearch.length > 0;
+
+  const subtitleCount = meta
+    ? debouncedSearch
+      ? t("explore.results", { count: meta.total, query: debouncedSearch })
+      : t("explore.total", { count: meta.total })
+    : t("common.recipes");
 
   return (
     <div className="py-10">
       {/* Header */}
       <div className="max-w-2xl mb-10">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-snug mb-3">
-          Explore our catalogue of recipes gathered from all around the world
+          {t("explore.title")}
         </h2>
         <p className="text-white/45 text-sm sm:text-base leading-relaxed">
-          {meta
-            ? debouncedSearch
-              ? `${meta.total} results for "${debouncedSearch}"`
-              : `${meta.total} recipes`
-            : "Recipes"}{" "}
-          crafted by home cooks, chefs and masters of the craft
+          {subtitleCount} {t("explore.subtitle")}
         </p>
       </div>
 
       {/* Filters + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-sm text-white/35 mr-2">Filters</span>
-          {FILTERS.map((filter) => (
+          <span className="text-sm text-white/35 mr-2">{t("explore.filters")}</span>
+          {FILTERS.map(({ key, label }) => (
             <button
-              key={filter}
-              onClick={() => handleFilterChange(filter)}
+              key={key}
+              onClick={() => handleFilterChange(key)}
               className={`px-4 py-1.5 rounded-full text-sm transition-colors cursor-pointer select-none ${
-                activeFilter === filter
+                activeFilter === key
                   ? "bg-green-500 text-black font-medium"
                   : "text-white/55 hover:text-white hover:bg-white/8"
               }`}
             >
-              {filter}
+              {label}
             </button>
           ))}
         </div>
@@ -128,10 +129,10 @@ export default function Explore() {
             value={searchInput}
             onChange={(e) => {
               setSearchInput(e.target.value);
-              setLimit(LIMIT); // reset limit on new search
+              setLimit(LIMIT);
             }}
             className="px-4 py-2 bg-white/8 border border-white/10 text-white/75 rounded-full w-full sm:w-64 text-sm placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors pr-10"
-            placeholder="Search recipes..."
+            placeholder={t("explore.searchPlaceholder")}
           />
           {isSearching && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -152,7 +153,7 @@ export default function Explore() {
       {/* Active search chip */}
       {debouncedSearch && (
         <div className="flex items-center gap-2 mb-6">
-          <span className="text-sm text-white/40">Searching for:</span>
+          <span className="text-sm text-white/40">{t("explore.searchingFor")}</span>
           <span className="px-3 py-1 rounded-full text-xs bg-green-500/15 border border-green-500/30 text-green-400 flex items-center gap-2">
             {debouncedSearch}
             <button
@@ -168,26 +169,26 @@ export default function Explore() {
       {/* Grid */}
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-          {Array.from({ length: 10 }).map(() => (
-            <RecipeCardSkeleton/>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <RecipeCardSkeleton key={i} />
           ))}
         </div>
       ) : displayedRecipes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3">
           <span className="text-5xl">🍽️</span>
           <p className="text-white/30 text-sm">
-            {activeFilter === "Bookmarked"
-              ? "No bookmarked recipes yet."
+            {activeFilter === "bookmarked"
+              ? t("explore.noBookmarked")
               : debouncedSearch
-                ? `No recipes found for "${debouncedSearch}".`
-                : "No recipes found."}
+                ? t("explore.noResults", { query: debouncedSearch })
+                : t("explore.noRecipes")}
           </p>
           {debouncedSearch && (
             <button
               onClick={handleClearSearch}
               className="text-sm text-green-400 hover:text-green-300 transition-colors"
             >
-              Clear search
+              {t("explore.clearSearch")}
             </button>
           )}
         </div>
@@ -205,14 +206,14 @@ export default function Explore() {
       )}
 
       {/* Load more */}
-      {hasMore && activeFilter !== "Bookmarked" && (
+      {hasMore && activeFilter !== "bookmarked" && (
         <div className="flex justify-center mt-10 mb-6">
           <button
             onClick={handleLoadMore}
             disabled={isFetching}
             className="py-2.5 px-6 text-sm font-medium bg-green-500 hover:bg-green-400 text-black rounded-full transition-colors cursor-pointer select-none disabled:opacity-50"
           >
-            {isFetching ? "Loading..." : "Load more"}
+            {isFetching ? t("explore.loading") : t("explore.loadMore")}
           </button>
         </div>
       )}

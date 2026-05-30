@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import bellpepper from "/icons/bellpepper-green.svg";
 import { useLogin, useRegister } from "../hooks/useAuthApi";
 
 export default function SignIn() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<"signin" | "register">(
     searchParams.get("tab") === "register" ? "register" : "signin",
   );
 
-  // signin state
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
-
-  // register state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
@@ -68,17 +67,17 @@ export default function SignIn() {
         <div className="bg-white/5 border border-white/8 rounded-2xl p-8">
           {/* Tabs */}
           <div className="flex gap-1 bg-white/5 rounded-full p-1 mb-8">
-            {(["signin", "register"] as const).map((t) => (
+            {(["signin", "register"] as const).map((tabKey) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
+                key={tabKey}
+                onClick={() => setTab(tabKey)}
                 className={`flex-1 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-                  tab === t
+                  tab === tabKey
                     ? "bg-green-500 text-black"
                     : "text-white/40 hover:text-white"
                 }`}
               >
-                {t === "signin" ? "Sign In" : "Register"}
+                {tabKey === "signin" ? t("signIn.tabSignIn") : t("signIn.tabRegister")}
               </button>
             ))}
           </div>
@@ -86,39 +85,35 @@ export default function SignIn() {
           {/* Error */}
           {error && (
             <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-              {tab === "signin"
-                ? "Invalid email or password."
-                : "Registration failed. Please try again."}
+              {tab === "signin" ? t("signIn.errorSignIn") : t("signIn.errorRegister")}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {tab === "signin" ? (
               <>
-                {/* Email or Username */}
                 <div>
-                  <label className={labelClass}>Email or Username</label>
+                  <label className={labelClass}>{t("signIn.labelEmailOrUsername")}</label>
                   <input
                     type="text"
                     value={emailOrUsername}
                     onChange={(e) => setEmailOrUsername(e.target.value)}
                     className={inputClass}
-                    placeholder="you@example.com or johndoe"
+                    placeholder={t("signIn.placeholderEmailOrUsername")}
                     required
                   />
                 </div>
 
-                {/* Password */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className={labelClass} style={{ marginBottom: 0 }}>
-                      Password
+                      {t("signIn.labelPassword")}
                     </label>
                     <button
                       type="button"
                       className="text-xs text-white/30 hover:text-green-400 transition-colors cursor-pointer"
                     >
-                      Forgot password?
+                      {t("signIn.forgotPassword")}
                     </button>
                   </div>
                   <input
@@ -133,10 +128,9 @@ export default function SignIn() {
               </>
             ) : (
               <>
-                {/* First & Last Name */}
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <label className={labelClass}>First Name</label>
+                    <label className={labelClass}>{t("signIn.labelFirstName")}</label>
                     <input
                       type="text"
                       value={firstName}
@@ -147,7 +141,7 @@ export default function SignIn() {
                     />
                   </div>
                   <div className="flex-1">
-                    <label className={labelClass}>Last Name</label>
+                    <label className={labelClass}>{t("signIn.labelLastName")}</label>
                     <input
                       type="text"
                       value={lastName}
@@ -159,9 +153,8 @@ export default function SignIn() {
                   </div>
                 </div>
 
-                {/* Username */}
                 <div>
-                  <label className={labelClass}>Username</label>
+                  <label className={labelClass}>{t("signIn.labelUsername")}</label>
                   <input
                     type="text"
                     value={username}
@@ -172,9 +165,8 @@ export default function SignIn() {
                   />
                 </div>
 
-                {/* Email */}
                 <div>
-                  <label className={labelClass}>Email</label>
+                  <label className={labelClass}>{t("signIn.labelEmail")}</label>
                   <input
                     type="email"
                     value={registerEmail}
@@ -185,9 +177,8 @@ export default function SignIn() {
                   />
                 </div>
 
-                {/* Password */}
                 <div>
-                  <label className={labelClass}>Password</label>
+                  <label className={labelClass}>{t("signIn.labelPassword")}</label>
                   <input
                     type="password"
                     value={registerPassword}
@@ -198,9 +189,8 @@ export default function SignIn() {
                   />
                 </div>
 
-                {/* Confirm Password */}
                 <div>
-                  <label className={labelClass}>Confirm Password</label>
+                  <label className={labelClass}>{t("signIn.labelConfirmPassword")}</label>
                   <input
                     type="password"
                     value={confirmPassword}
@@ -215,7 +205,7 @@ export default function SignIn() {
                   />
                   {confirmPassword && registerPassword !== confirmPassword && (
                     <p className="text-xs text-red-400 mt-1.5">
-                      Passwords do not match
+                      {t("signIn.passwordMismatch")}
                     </p>
                   )}
                 </div>
@@ -232,18 +222,18 @@ export default function SignIn() {
             >
               {isPending
                 ? tab === "signin"
-                  ? "Signing in..."
-                  : "Creating account..."
+                  ? t("signIn.signingIn")
+                  : t("signIn.creatingAccount")
                 : tab === "signin"
-                  ? "Sign In"
-                  : "Create Account"}
+                  ? t("signIn.buttonSignIn")
+                  : t("signIn.buttonCreateAccount")}
             </button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-white/8" />
-            <span className="text-xs text-white/25">or continue with</span>
+            <span className="text-xs text-white/25">{t("signIn.orContinueWith")}</span>
             <div className="flex-1 h-px bg-white/8" />
           </div>
 
@@ -263,19 +253,18 @@ export default function SignIn() {
 
         {/* Footer */}
         <p className="text-center text-xs text-white/25 mt-6">
-          By continuing you agree to our{" "}
-          <Link
-            to="/terms"
-            className="text-white/40 hover:text-white transition-colors"
-          >
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link
-            to="/privacy"
-            className="text-white/40 hover:text-white transition-colors"
-          >
-            Privacy Policy
+          {t("signIn.termsText", {
+            terms: "",
+            privacy: "",
+          }).split("{{terms}}")[0]}
+          <Link to="/terms" className="text-white/40 hover:text-white transition-colors">
+            {t("signIn.terms")}
+          </Link>
+          {t("signIn.termsText", { terms: "", privacy: "" })
+            .split("{{terms}}")[1]
+            ?.split("{{privacy}}")[0]}
+          <Link to="/privacy" className="text-white/40 hover:text-white transition-colors">
+            {t("signIn.privacy")}
           </Link>
         </p>
       </div>

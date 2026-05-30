@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaRegBookmark, FaBookmark, FaStar, FaRegStar } from "react-icons/fa";
 import coverImg from "/homepage/eggsveggies.jpg";
 import { useRecipe } from "../hooks/useRecipes";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useAuth } from "../hooks/useAuth";
 import { api } from "../lib/axios";
+import { useLanguage } from "../context";
 
 export default function RecipeDetails() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isBookmarked, toggle } = useBookmarks();
+  const { t: tLang, lang } = useLanguage();
 
   const { data: recipeData, isLoading, error } = useRecipe(id ?? "");
-
-  // izvuci recept iz response-a
   const recipe = recipeData;
 
   const [servings, setServings] = useState<number | null>(null);
@@ -23,7 +25,6 @@ export default function RecipeDetails() {
     "ingredients",
   );
 
-  // comments state
   const [comments, setComments] = useState<
     {
       id: string | number;
@@ -39,10 +40,15 @@ export default function RecipeDetails() {
   const [hoveredStar, setHoveredStar] = useState(0);
   const [submittingComment, setSubmittingComment] = useState(false);
 
+  const ratingLabels =
+    lang === "sr"
+      ? ["", "Loše", "Solidno", "Dobro", "Odlično", "Izvrsno"]
+      : ["", "Poor", "Fair", "Good", "Great", "Excellent"];
+
   if (isLoading) {
     return (
       <div className="py-16 flex items-center justify-center">
-        <p className="text-white/30 text-sm">Loading recipe...</p>
+        <p className="text-white/30 text-sm">{t("recipeDetails.loading")}</p>
       </div>
     );
   }
@@ -50,12 +56,12 @@ export default function RecipeDetails() {
   if (error || !recipe) {
     return (
       <div className="py-16 flex flex-col items-center justify-center gap-4">
-        <p className="text-white/30 text-sm">Recipe not found.</p>
+        <p className="text-white/30 text-sm">{t("recipeDetails.notFound")}</p>
         <button
           onClick={() => navigate(-1)}
           className="text-sm text-green-400 hover:text-green-300 transition-colors"
         >
-          ← Go back
+          {t("recipeDetails.goBack")}
         </button>
       </div>
     );
@@ -86,7 +92,6 @@ export default function RecipeDetails() {
         score: commentRating,
       });
 
-      // dodaj lokalno odmah, ne čekaj approval
       setComments((prev) => [
         {
           id: Date.now(),
@@ -102,7 +107,6 @@ export default function RecipeDetails() {
       setCommentText("");
       setCommentRating(0);
     } catch {
-      // ako nije ulogovan, preusmeri na login
       navigate("/signin");
     } finally {
       setSubmittingComment(false);
@@ -114,14 +118,14 @@ export default function RecipeDetails() {
       {/* BREADCRUMB */}
       <div className="flex items-center gap-2 text-xs text-white/30 mb-8 md:mb-10">
         <Link to="/" className="hover:text-white transition-colors">
-          Home
+          {t("nav.home")}
         </Link>
         <span>/</span>
         <Link to="/explore" className="hover:text-white transition-colors">
-          Explore
+          {t("nav.explore")}
         </Link>
         <span>/</span>
-        <span className="text-white/55 truncate">{recipe.title}</span>
+        <span className="text-white/55 truncate">{tLang(recipe.title)}</span>
       </div>
 
       {/* HERO */}
@@ -129,7 +133,7 @@ export default function RecipeDetails() {
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
           <img
             src={recipe.coverImageUrl ?? coverImg}
-            alt={recipe.title}
+            alt={tLang(recipe.title)}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/20" />
@@ -143,7 +147,7 @@ export default function RecipeDetails() {
         <div className="flex flex-col gap-6">
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight">
-              {recipe.title}
+              {tLang(recipe.title)}
             </h1>
             <button
               onClick={() => toggle(recipe.id)}
@@ -168,36 +172,35 @@ export default function RecipeDetails() {
               )}
             </div>
             <span className="text-white/40 text-sm">
-              {recipe.ratingCount} reviews
+              {recipe.ratingCount} {t("recipeDetails.reviews")}
             </span>
           </div>
 
           <p className="text-white/50 text-sm leading-relaxed">
-            {recipe.description}
+            {tLang(recipe.description)}
           </p>
-
           <div className="grid grid-cols-2 gap-3">
             {[
               {
-                label: "Prep Time",
+                label: t("recipeDetails.prepTime"),
                 value:
                   recipe.prepTimeMinutes > 0
-                    ? `${recipe.prepTimeMinutes} min`
+                    ? `${recipe.prepTimeMinutes} ${t("recipeDetails.min")}`
                     : "—",
               },
               {
-                label: "Cook Time",
-                value: `${recipe.cookTimeMinutes} min`,
+                label: t("recipeDetails.cookTime"),
+                value: `${recipe.cookTimeMinutes} ${t("recipeDetails.min")}`,
               },
               {
-                label: "Difficulty",
+                label: t("recipeDetails.difficulty"),
                 value:
                   recipe.difficulty.charAt(0).toUpperCase() +
                   recipe.difficulty.slice(1),
               },
               {
-                label: "Servings",
-                value: `${currentServings} people`,
+                label: t("recipeDetails.servings"),
+                value: `${currentServings} ${t("recipeDetails.people")}`,
               },
             ].map(({ label, value }) => (
               <div
@@ -248,7 +251,7 @@ export default function RecipeDetails() {
               to={`/profile/${recipe.author.id}`}
               className="ml-auto text-xs border border-white/10 hover:border-white/25 text-white/45 hover:text-white px-4 py-2 rounded-full transition-colors shrink-0"
             >
-              View Profile
+              {t("recipeDetails.viewProfile")}
             </Link>
           </div>
         </div>
@@ -266,7 +269,9 @@ export default function RecipeDetails() {
                 : "border-transparent text-white/40 hover:text-white/70"
             }`}
           >
-            {tab === "ingredients" ? "Ingredients" : "Instructions"}
+            {tab === "ingredients"
+              ? t("recipeDetails.ingredients")
+              : t("recipeDetails.instructions")}
           </button>
         ))}
       </div>
@@ -278,7 +283,7 @@ export default function RecipeDetails() {
         >
           <div className="bg-white/5 border border-white/8 rounded-2xl p-5 mb-6">
             <p className="text-xs uppercase tracking-widest text-white/30 font-medium mb-4">
-              Adjust Servings
+              {t("recipeDetails.adjustServings")}
             </p>
             <div className="flex items-center gap-4">
               <button
@@ -298,13 +303,15 @@ export default function RecipeDetails() {
               >
                 +
               </button>
-              <span className="text-sm text-white/35">people</span>
+              <span className="text-sm text-white/35">
+                {t("recipeDetails.people")}
+              </span>
             </div>
           </div>
 
           <div className="bg-white/5 border border-white/8 rounded-2xl p-5">
             <p className="text-xs uppercase tracking-widest text-white/30 font-medium mb-5">
-              Ingredients
+              {t("recipeDetails.ingredients")}
             </p>
             <ul className="space-y-3">
               {recipe.ingredients
@@ -329,7 +336,7 @@ export default function RecipeDetails() {
           className={`col-span-1 md:col-span-2 ${activeTab !== "steps" ? "hidden md:block" : ""}`}
         >
           <p className="text-xs uppercase tracking-widest text-white/30 font-medium mb-6">
-            Instructions
+            {t("recipeDetails.instructions")}
           </p>
           <ol className="space-y-6">
             {recipe.steps
@@ -342,7 +349,9 @@ export default function RecipeDetails() {
                   </span>
                   <div className="bg-white/5 border border-white/8 rounded-2xl p-5 flex-1 hover:border-white/14 transition-colors">
                     <p className="text-sm text-white/70 leading-relaxed">
-                      {step.instruction}
+                      {lang === "sr" && step.instructionSr
+                        ? step.instructionSr
+                        : step.instruction}
                     </p>
                   </div>
                 </li>
@@ -354,10 +363,10 @@ export default function RecipeDetails() {
       {/* COMMENTS */}
       <div className="border-t border-white/8 pt-12">
         <p className="text-xs uppercase tracking-widest text-white/30 font-medium mb-2">
-          Community
+          {t("recipeDetails.community")}
         </p>
         <h2 className="text-2xl font-semibold mb-10">
-          Comments{" "}
+          {t("recipeDetails.comments")}{" "}
           <span className="text-white/25 text-lg font-normal">
             ({comments.length})
           </span>
@@ -369,7 +378,9 @@ export default function RecipeDetails() {
           className="bg-white/5 border border-white/8 rounded-2xl p-6 mb-10"
         >
           <p className="text-sm font-medium text-white mb-4">
-            {user ? "Leave a comment" : "Sign in to leave a comment"}
+            {user
+              ? t("recipeDetails.leaveComment")
+              : t("recipeDetails.signInToComment")}
           </p>
 
           <div className="flex items-center gap-1 mb-4">
@@ -391,11 +402,7 @@ export default function RecipeDetails() {
             ))}
             {commentRating > 0 && (
               <span className="text-xs text-white/30 ml-2">
-                {
-                  ["", "Poor", "Fair", "Good", "Great", "Excellent"][
-                    commentRating
-                  ]
-                }
+                {ratingLabels[commentRating]}
               </span>
             )}
           </div>
@@ -403,7 +410,7 @@ export default function RecipeDetails() {
           <textarea
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Share your experience with this recipe..."
+            placeholder={t("recipeDetails.commentPlaceholder")}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-green-500/50 transition-colors resize-none h-24 mb-4"
           />
 
@@ -415,7 +422,9 @@ export default function RecipeDetails() {
               }
               className="px-5 py-2.5 rounded-full text-sm font-medium bg-green-500 hover:bg-green-400 text-black transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              {submittingComment ? "Posting..." : "Post Comment"}
+              {submittingComment
+                ? t("recipeDetails.posting")
+                : t("recipeDetails.postComment")}
             </button>
           </div>
         </form>

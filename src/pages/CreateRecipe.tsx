@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useCreateRecipe, useUploadCoverImage } from "../hooks/useRecipes";
 import { useCategories } from "../hooks/useCategories";
 import type { Category } from "../api/categories";
@@ -33,6 +35,7 @@ interface Step {
 }
 
 export default function CreateRecipe() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const { mutate: createRecipe, isPending, error } = useCreateRecipe();
@@ -40,7 +43,6 @@ export default function CreateRecipe() {
   const { data: categoriesData } = useCategories();
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
-  // basic info
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -56,8 +58,6 @@ export default function CreateRecipe() {
 
   const [steps, setSteps] = useState<Step[]>([{ id: 1, text: "" }]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  // ─── Ingredient helpers ─────────────────────────────────────
 
   const addIngredient = () =>
     setIngredients((prev) => [
@@ -77,8 +77,6 @@ export default function CreateRecipe() {
       prev.map((i) => (i.id === id ? { ...i, [field]: value } : i)),
     );
 
-  // ─── Step helpers ───────────────────────────────────────────
-
   const addStep = () =>
     setSteps((prev) => [...prev, { id: Date.now(), text: "" }]);
 
@@ -90,8 +88,6 @@ export default function CreateRecipe() {
       prev.map((s) => (s.id === id ? { ...s, text: value } : s)),
     );
 
-  // ─── Image ──────────────────────────────────────────────────
-
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -99,8 +95,6 @@ export default function CreateRecipe() {
     reader.onloadend = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
   };
-
-  // ─── Payload builder ────────────────────────────────────────
 
   const buildPayload = () => ({
     title,
@@ -133,8 +127,6 @@ export default function CreateRecipe() {
       : [],
   });
 
-  // ─── Submit handlers ────────────────────────────────────────
-
   const handlePublish = async () => {
     const payload = buildPayload();
 
@@ -150,6 +142,9 @@ export default function CreateRecipe() {
         }
 
         await recipesApi.publish(recipe.id);
+        toast.success(t("createRecipe.publishRecipe"), {
+          description: t("createRecipe.pageTag"),
+        });
         navigate(`/recipes/${recipe.id}`);
       },
     });
@@ -158,11 +153,12 @@ export default function CreateRecipe() {
   const handleDraft = () => {
     const payload = buildPayload();
     createRecipe(payload, {
-      onSuccess: () => navigate("/my-recipes"),
+      onSuccess: () => {
+        toast.success(t("createRecipe.saveAsDraft"));
+        navigate("/my-recipes");
+      },
     });
   };
-
-  // ─── Validation ─────────────────────────────────────────────
 
   const canPublish =
     title.trim() &&
@@ -173,8 +169,6 @@ export default function CreateRecipe() {
     servings &&
     ingredients.some((i) => i.name.trim()) &&
     steps.some((s) => s.text.trim());
-
-  // ─── Styles ─────────────────────────────────────────────────
 
   const inputClass =
     "bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-green-500/50 transition-colors";
@@ -190,24 +184,24 @@ export default function CreateRecipe() {
       {/* Header */}
       <div className="mb-10 sm:mb-12">
         <p className="text-xs uppercase tracking-widest text-green-400 font-medium mb-3">
-          Share your cooking
+          {t("createRecipe.pageTag")}
         </p>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight">
-          Create a Recipe
+          {t("createRecipe.pageTitle")}
         </h1>
       </div>
 
       {/* Error */}
       {error && (
         <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-          Something went wrong — please try again.
+          {t("createRecipe.errorGeneric")}
         </div>
       )}
 
       <div className="space-y-10">
         {/* IMAGE UPLOAD */}
         <div>
-          <label className={labelClass}>Cover Photo</label>
+          <label className={labelClass}>{t("createRecipe.coverPhoto")}</label>
           <label
             htmlFor="image-upload"
             className="block w-full h-48 sm:h-64 rounded-2xl border-2 border-dashed border-white/10 hover:border-green-500/40 transition-colors cursor-pointer overflow-hidden"
@@ -221,8 +215,8 @@ export default function CreateRecipe() {
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-white/25">
                 <span className="text-4xl sm:text-5xl">📷</span>
-                <p className="text-sm">Click to upload a cover photo</p>
-                <p className="text-xs">JPG, PNG, WEBP · max 5MB</p>
+                <p className="text-sm">{t("createRecipe.uploadPrompt")}</p>
+                <p className="text-xs">{t("createRecipe.uploadHint")}</p>
               </div>
             )}
           </label>
@@ -238,7 +232,7 @@ export default function CreateRecipe() {
         {/* BASIC INFO */}
         <div className="space-y-5">
           <div>
-            <label className={labelClass}>Recipe Title *</label>
+            <label className={labelClass}>{t("createRecipe.labelTitle")}</label>
             <input
               type="text"
               value={title}
@@ -248,12 +242,12 @@ export default function CreateRecipe() {
             />
           </div>
           <div>
-            <label className={labelClass}>Description *</label>
+            <label className={labelClass}>{t("createRecipe.labelDescription")}</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className={`${inputClass} w-full resize-none h-28`}
-              placeholder="Tell us about this dish — where it's from, what makes it special..."
+              placeholder={t("createRecipe.descriptionPlaceholder")}
             />
           </div>
         </div>
@@ -261,7 +255,7 @@ export default function CreateRecipe() {
         {/* TIME + SERVINGS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className={labelClass}>Prep Time (min)</label>
+            <label className={labelClass}>{t("createRecipe.labelPrepTime")}</label>
             <input
               type="number"
               value={prepTime}
@@ -272,7 +266,7 @@ export default function CreateRecipe() {
             />
           </div>
           <div>
-            <label className={labelClass}>Cook Time (min) *</label>
+            <label className={labelClass}>{t("createRecipe.labelCookTime")}</label>
             <input
               type="number"
               value={cookTime}
@@ -283,7 +277,7 @@ export default function CreateRecipe() {
             />
           </div>
           <div>
-            <label className={labelClass}>Servings *</label>
+            <label className={labelClass}>{t("createRecipe.labelServings")}</label>
             <input
               type="number"
               value={servings}
@@ -297,9 +291,9 @@ export default function CreateRecipe() {
 
         {/* CATEGORY */}
         <div>
-          <label className={labelClass}>Category *</label>
+          <label className={labelClass}>{t("createRecipe.labelCategory")}</label>
           {categories.length === 0 ? (
-            <p className="text-white/25 text-sm">Loading categories...</p>
+            <p className="text-white/25 text-sm">{t("createRecipe.loadingCategories")}</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {categories.map((cat: Category) => (
@@ -322,7 +316,7 @@ export default function CreateRecipe() {
 
         {/* DIFFICULTY */}
         <div>
-          <label className={labelClass}>Difficulty *</label>
+          <label className={labelClass}>{t("createRecipe.labelDifficulty")}</label>
           <div className="flex flex-wrap gap-2">
             {DIFFICULTIES.map((d) => (
               <button
@@ -343,22 +337,20 @@ export default function CreateRecipe() {
 
         {/* TAGS */}
         <div>
-          <label className={labelClass}>Tags</label>
+          <label className={labelClass}>{t("createRecipe.labelTags")}</label>
           <input
             type="text"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             className={`${inputClass} w-full`}
-            placeholder="e.g. vegetarian, gluten-free, quick (comma separated)"
+            placeholder={t("createRecipe.tagsPlaceholder")}
           />
-          <p className="text-xs text-white/20 mt-1.5">
-            Separate tags with commas
-          </p>
+          <p className="text-xs text-white/20 mt-1.5">{t("createRecipe.tagsHint")}</p>
         </div>
 
         {/* INGREDIENTS */}
         <div>
-          <label className={labelClass}>Ingredients *</label>
+          <label className={labelClass}>{t("createRecipe.labelIngredients")}</label>
           <div className="space-y-3">
             {ingredients.map((ing, index) => (
               <div key={ing.id} className="space-y-2">
@@ -399,7 +391,7 @@ export default function CreateRecipe() {
                         updateIngredient(ing.id, "name", e.target.value)
                       }
                       className={`${inputClass} flex-1 min-w-0`}
-                      placeholder="Ingredient name"
+                      placeholder={t("createRecipe.ingredientNamePlaceholder")}
                     />
                     {ingredients.length > 1 && (
                       <button
@@ -412,7 +404,6 @@ export default function CreateRecipe() {
                     )}
                   </div>
                 </div>
-                {/* Notes field */}
                 <div className="pl-7">
                   <input
                     type="text"
@@ -421,7 +412,7 @@ export default function CreateRecipe() {
                       updateIngredient(ing.id, "notes", e.target.value)
                     }
                     className={`${inputClass} w-full text-xs`}
-                    placeholder="Notes (optional) — e.g. finely chopped, room temperature"
+                    placeholder={t("createRecipe.ingredientNotesPlaceholder")}
                   />
                 </div>
               </div>
@@ -432,13 +423,13 @@ export default function CreateRecipe() {
             onClick={addIngredient}
             className="mt-4 text-sm text-green-400 hover:text-green-300 transition-colors cursor-pointer"
           >
-            + Add ingredient
+            {t("createRecipe.addIngredient")}
           </button>
         </div>
 
         {/* STEPS */}
         <div>
-          <label className={labelClass}>Steps *</label>
+          <label className={labelClass}>{t("createRecipe.labelSteps")}</label>
           <div className="space-y-3">
             {steps.map((step, index) => (
               <div key={step.id} className="flex gap-3 items-start">
@@ -449,7 +440,7 @@ export default function CreateRecipe() {
                   value={step.text}
                   onChange={(e) => updateStep(step.id, e.target.value)}
                   className={`${inputClass} w-full resize-none h-20`}
-                  placeholder={`Step ${index + 1} — describe what to do...`}
+                  placeholder={t("createRecipe.stepPlaceholder", { num: index + 1 })}
                 />
                 {steps.length > 1 && (
                   <button
@@ -468,7 +459,7 @@ export default function CreateRecipe() {
             onClick={addStep}
             className="mt-4 text-sm text-green-400 hover:text-green-300 transition-colors cursor-pointer"
           >
-            + Add step
+            {t("createRecipe.addStep")}
           </button>
         </div>
 
@@ -479,7 +470,7 @@ export default function CreateRecipe() {
             onClick={() => navigate(-1)}
             className="text-sm text-white/35 hover:text-white transition-colors cursor-pointer text-center sm:text-left"
           >
-            ← Cancel
+            {t("createRecipe.cancel")}
           </button>
           <div className="flex gap-3 justify-end">
             <button
@@ -488,7 +479,7 @@ export default function CreateRecipe() {
               disabled={!title.trim() || isPending}
               className="px-5 py-2.5 rounded-full text-sm border border-white/10 text-white/55 hover:text-white hover:border-white/20 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              Save as Draft
+              {t("createRecipe.saveAsDraft")}
             </button>
             <button
               type="button"
@@ -496,7 +487,7 @@ export default function CreateRecipe() {
               disabled={!canPublish || isPending}
               className="px-6 py-2.5 rounded-full text-sm bg-green-500 hover:bg-green-400 text-black font-medium transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              {isPending ? "Publishing..." : "Publish Recipe"}
+              {isPending ? t("createRecipe.publishing") : t("createRecipe.publishRecipe")}
             </button>
           </div>
         </div>

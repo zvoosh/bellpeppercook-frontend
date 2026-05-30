@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { RecipeCard } from "../components";
 import { useAuth } from "../hooks/useAuth";
 import { useMyRecipes } from "../hooks/useRecipes";
@@ -8,17 +9,21 @@ import { useUser } from "../hooks/useUsers";
 import type { Recipe } from "../api/recipes";
 import { RecipeCardSkeleton } from "../components/RecipeCardSkeleton";
 
-const TABS = ["Recipes", "Bookmarked", "About"];
-
 export default function Profile() {
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user: authUser } = useAuth();
-  const [activeTab, setActiveTab] = useState("Recipes");
+  const [activeTab, setActiveTab] = useState(t("profile.tabRecipes"));
   const { toggle, isBookmarked, bookmarks } = useBookmarks();
+
+  const TABS = [
+    t("profile.tabRecipes"),
+    t("profile.tabBookmarked"),
+    t("profile.tabAbout"),
+  ];
 
   const isOwnProfile = authUser?.id === id;
 
-  // uvek fetchujemo korisnika po id-u iz URL-a
   const { data: profileUser, isLoading: userLoading } = useUser(id);
 
   const { data: myRecipesData, isLoading: recipesLoading } = useMyRecipes(id);
@@ -29,10 +34,10 @@ export default function Profile() {
   const bookmarkedRecipes = myRecipes.filter((r) => isBookmarked(r.id));
 
   const joinedDate = profileUser?.createdAt
-    ? new Date(profileUser.createdAt).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      })
+    ? new Date(profileUser.createdAt).toLocaleDateString(
+        i18n.language === "sr" ? "sr-RS" : "en-US",
+        { month: "long", year: "numeric" },
+      )
     : "—";
 
   const averageRating =
@@ -46,7 +51,7 @@ export default function Profile() {
   if (userLoading) {
     return (
       <div className="py-16 flex items-center justify-center">
-        <p className="text-white/30 text-sm">Loading profile...</p>
+        <p className="text-white/30 text-sm">{t("profile.loading")}</p>
       </div>
     );
   }
@@ -54,7 +59,7 @@ export default function Profile() {
   if (!profileUser) {
     return (
       <div className="py-16 flex items-center justify-center">
-        <p className="text-white/30 text-sm">User not found.</p>
+        <p className="text-white/30 text-sm">{t("profile.notFound")}</p>
       </div>
     );
   }
@@ -87,11 +92,11 @@ export default function Profile() {
             </p>
             {profileUser.role === "chef" && (
               <span className="inline-block mb-3 px-3 py-1 rounded-full text-xs bg-green-500/15 border border-green-500/30 text-green-400 font-medium">
-                ✓ Verified Chef
+                {t("profile.verifiedChef")}
               </span>
             )}
             <div className="flex items-center justify-center sm:justify-start gap-x-4 text-xs text-white/30">
-              <span>📅 Joined {joinedDate}</span>
+              <span>📅 {t("profile.joined")} {joinedDate}</span>
             </div>
           </div>
         </div>
@@ -102,11 +107,11 @@ export default function Profile() {
             to="/settings"
             className="px-5 py-2.5 rounded-full text-sm border border-white/10 text-white/55 hover:text-white hover:border-white/20 transition-colors shrink-0 sm:mt-2"
           >
-            Edit Profile
+            {t("profile.editProfile")}
           </Link>
         ) : (
           <button className="px-5 py-2.5 rounded-full text-sm bg-green-500 hover:bg-green-400 text-black font-medium transition-colors shrink-0 sm:mt-2 cursor-pointer">
-            Follow
+            {t("profile.follow")}
           </button>
         )}
       </div>
@@ -114,9 +119,9 @@ export default function Profile() {
       {/* STATS */}
       <div className="grid grid-cols-3 gap-4 mb-10">
         {[
-          { num: myRecipes.length, label: "Recipes Published" },
-          { num: isOwnProfile ? bookmarks.length : "—", label: "Bookmarked" },
-          { num: averageRating, label: "Average Rating" },
+          { num: myRecipes.length, label: t("profile.recipesPublished") },
+          { num: isOwnProfile ? bookmarks.length : "—", label: t("profile.bookmarked") },
+          { num: averageRating, label: t("profile.averageRating") },
         ].map(({ num, label }) => (
           <div
             key={label}
@@ -130,7 +135,7 @@ export default function Profile() {
 
       {/* TABS */}
       <div className="flex gap-1 border-b border-white/8 mb-8">
-        {TABS.filter((t) => isOwnProfile || t !== "Bookmarked").map((tab) => (
+        {TABS.filter((tab) => isOwnProfile || tab !== t("profile.tabBookmarked")).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -146,16 +151,16 @@ export default function Profile() {
       </div>
 
       {/* TAB CONTENT */}
-      {activeTab === "Recipes" && (
+      {activeTab === t("profile.tabRecipes") && (
         <>
           {recipesLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-              {Array.from({ length: 5 }).map(() => (
-                <RecipeCardSkeleton />
+              {Array.from({ length: 5 }).map((_, i) => (
+                <RecipeCardSkeleton key={i} />
               ))}
             </div>
           ) : myRecipes.length === 0 ? (
-            <p className="text-white/30 text-sm">No recipes yet.</p>
+            <p className="text-white/30 text-sm">{t("profile.noRecipes")}</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               {myRecipes.map((recipe) => (
@@ -171,10 +176,10 @@ export default function Profile() {
         </>
       )}
 
-      {activeTab === "Bookmarked" && isOwnProfile && (
+      {activeTab === t("profile.tabBookmarked") && isOwnProfile && (
         <>
           {bookmarkedRecipes.length === 0 ? (
-            <p className="text-white/30 text-sm">No bookmarked recipes yet.</p>
+            <p className="text-white/30 text-sm">{t("profile.noBookmarked")}</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               {bookmarkedRecipes.map((recipe) => (
@@ -190,31 +195,31 @@ export default function Profile() {
         </>
       )}
 
-      {activeTab === "About" && (
+      {activeTab === t("profile.tabAbout") && (
         <div className="max-w-2xl space-y-6">
           <div className="bg-white/5 border border-white/8 rounded-2xl p-8">
             <p className="text-xs uppercase tracking-widest text-white/30 font-medium mb-5">
-              Details
+              {t("profile.detailsTitle")}
             </p>
             <div className="space-y-4">
               {[
-                { label: "Username", value: `@${profileUser.username}` },
-                { label: "Member since", value: joinedDate },
+                { label: t("profile.detailUsername"), value: `@${profileUser.username}` },
+                { label: t("profile.detailMemberSince"), value: joinedDate },
                 {
-                  label: "Role",
+                  label: t("profile.detailRole"),
                   value:
                     profileUser.role.charAt(0).toUpperCase() +
                     profileUser.role.slice(1),
                 },
                 {
-                  label: "Recipes published",
-                  value: `${myRecipes.length} recipes`,
+                  label: t("profile.detailRecipesPublished"),
+                  value: t("profile.recipesCount", { count: myRecipes.length }),
                 },
                 ...(isOwnProfile
                   ? [
                       {
-                        label: "Bookmarked",
-                        value: `${bookmarks.length} recipes`,
+                        label: t("profile.detailBookmarked"),
+                        value: t("profile.recipesCount", { count: bookmarks.length }),
                       },
                     ]
                   : []),

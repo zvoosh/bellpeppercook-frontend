@@ -20,12 +20,11 @@ export interface CreateRecipePayload {
   }[];
   tags?: string[];
 }
-
 export interface Recipe {
   id: string;
-  title: string;
+  title: { en: string; sr: string };
+  description: { en: string; sr: string };
   slug: string;
-  description: string;
   coverImageUrl: string | null;
   prepTimeMinutes: number;
   cookTimeMinutes: number;
@@ -35,6 +34,7 @@ export interface Recipe {
   averageRating: number;
   ratingCount: number;
   viewCount: number;
+  isFeatured: boolean;
   tags: string[];
   ingredients: {
     id: string;
@@ -42,8 +42,13 @@ export interface Recipe {
     quantity: number;
     unit: string;
     order: number;
+    notes?: string;
   }[];
-  steps: { order: number; instruction: string }[];
+  steps: {
+    order: number;
+    instruction: string;
+    instructionSr?: string;
+  }[];
   author: {
     id: string;
     firstName: string;

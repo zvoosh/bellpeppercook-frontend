@@ -1,5 +1,5 @@
-import { createBrowserRouter } from "react-router-dom";
-import { RootLayout } from "../components";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { RootLayout, ProtectedRoute } from "../components";
 
 export const router = createBrowserRouter([
   {
@@ -28,25 +28,30 @@ export const router = createBrowserRouter([
         },
       },
       {
-        path: "profile/:id",
-        lazy: async () => {
-          const { Profile } = await import("../pages");
-          return { Component: Profile };
-        },
-      },
-      {
-        path: "create",
-        lazy: async () => {
-          const { CreateRecipe } = await import("../pages");
-          return { Component: CreateRecipe };
-        },
-      },
-      {
-        path: "my-recipes",
-        lazy: async () => {
-          const { MyRecipes } = await import("../pages");
-          return { Component: MyRecipes };
-        },
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "profile",
+            lazy: async () => {
+              const { Profile } = await import("../pages");
+              return { Component: Profile };
+            },
+          },
+          {
+            path: "profile/:id",
+            lazy: async () => {
+              const { Profile } = await import("../pages");
+              return { Component: Profile };
+            },
+          },
+          {
+            path: "create",
+            lazy: async () => {
+              const { CreateRecipe } = await import("../pages");
+              return { Component: CreateRecipe };
+            },
+          },
+        ],
       },
       {
         path: "about",
@@ -71,4 +76,5 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: "*", element: <Navigate to={"/"} replace /> },
 ]);
