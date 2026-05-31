@@ -10,8 +10,8 @@ import { AuthProvider, LanguageProvider } from "./context";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 0,
-      retry: 3,
+      staleTime: Infinity,
+      retry: 1,
     },
   },
 });

@@ -12,8 +12,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (text: { en: string; sr: string } | string): string => {
-    if (typeof text === "string") return text;
-    return text[lang] ?? text.en;
+    if (typeof text === "object") return text[lang] || text.en;
+    // backend ponekad vrati stringifikovani JSON: '{"en":"...","sr":"..."}'
+    try {
+      const parsed = JSON.parse(text) as { en: string; sr: string };
+      if (parsed && typeof parsed === "object" && "en" in parsed) {
+        return parsed[lang] || parsed.en;
+      }
+    } catch {
+      // nije JSON, vrati kao string
+    }
+    return text;
   };
 
   return (

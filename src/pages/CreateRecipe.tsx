@@ -32,6 +32,7 @@ interface Ingredient {
 interface Step {
   id: number;
   text: string;
+  textSr: string;
 }
 
 export default function CreateRecipe() {
@@ -44,7 +45,9 @@ export default function CreateRecipe() {
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
   const [title, setTitle] = useState("");
+  const [titleSr, setTitleSr] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionSr, setDescriptionSr] = useState("");
   const [category, setCategory] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [prepTime, setPrepTime] = useState("");
@@ -56,7 +59,7 @@ export default function CreateRecipe() {
     { id: 1, amount: "", unit: "g", name: "", notes: "" },
   ]);
 
-  const [steps, setSteps] = useState<Step[]>([{ id: 1, text: "" }]);
+  const [steps, setSteps] = useState<Step[]>([{ id: 1, text: "", textSr: "" }]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const addIngredient = () =>
@@ -78,14 +81,14 @@ export default function CreateRecipe() {
     );
 
   const addStep = () =>
-    setSteps((prev) => [...prev, { id: Date.now(), text: "" }]);
+    setSteps((prev) => [...prev, { id: Date.now(), text: "", textSr: "" }]);
 
   const removeStep = (id: number) =>
     setSteps((prev) => prev.filter((s) => s.id !== id));
 
-  const updateStep = (id: number, value: string) =>
+  const updateStep = (id: number, field: "text" | "textSr", value: string) =>
     setSteps((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, text: value } : s)),
+      prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
     );
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,8 +100,8 @@ export default function CreateRecipe() {
   };
 
   const buildPayload = () => ({
-    title,
-    description,
+    title: { en: title, sr: titleSr },
+    description: { en: description, sr: descriptionSr },
     prepTimeMinutes: parseInt(prepTime) || 0,
     cookTimeMinutes: parseInt(cookTime) || 0,
     servings: parseInt(servings) || 1,
@@ -118,6 +121,7 @@ export default function CreateRecipe() {
       .map((s, index) => ({
         order: index + 1,
         instruction: s.text,
+        instructionSr: s.textSr || undefined,
       })),
     tags: tags
       ? tags
@@ -240,6 +244,13 @@ export default function CreateRecipe() {
               className={`${inputClass} w-full`}
               placeholder="e.g. Moroccan Lamb Tagine"
             />
+            <input
+              type="text"
+              value={titleSr}
+              onChange={(e) => setTitleSr(e.target.value)}
+              className={`${inputClass} w-full mt-2`}
+              placeholder="npr. Marokanski jagnjeći tažin (srpski)"
+            />
           </div>
           <div>
             <label className={labelClass}>{t("createRecipe.labelDescription")}</label>
@@ -248,6 +259,12 @@ export default function CreateRecipe() {
               onChange={(e) => setDescription(e.target.value)}
               className={`${inputClass} w-full resize-none h-28`}
               placeholder={t("createRecipe.descriptionPlaceholder")}
+            />
+            <textarea
+              value={descriptionSr}
+              onChange={(e) => setDescriptionSr(e.target.value)}
+              className={`${inputClass} w-full resize-none h-28 mt-2`}
+              placeholder="Srpski opis jela (opciono)..."
             />
           </div>
         </div>
@@ -436,12 +453,20 @@ export default function CreateRecipe() {
                 <span className="mt-3 text-green-400 font-medium text-sm w-5 shrink-0 text-right">
                   {index + 1}
                 </span>
-                <textarea
-                  value={step.text}
-                  onChange={(e) => updateStep(step.id, e.target.value)}
-                  className={`${inputClass} w-full resize-none h-20`}
-                  placeholder={t("createRecipe.stepPlaceholder", { num: index + 1 })}
-                />
+                <div className="flex-1 flex flex-col gap-2">
+                  <textarea
+                    value={step.text}
+                    onChange={(e) => updateStep(step.id, "text", e.target.value)}
+                    className={`${inputClass} w-full resize-none h-20`}
+                    placeholder={t("createRecipe.stepPlaceholder", { num: index + 1 })}
+                  />
+                  <textarea
+                    value={step.textSr}
+                    onChange={(e) => updateStep(step.id, "textSr", e.target.value)}
+                    className={`${inputClass} w-full resize-none h-20`}
+                    placeholder={`Korak ${index + 1} — srpski prevod (opciono)...`}
+                  />
+                </div>
                 {steps.length > 1 && (
                   <button
                     type="button"

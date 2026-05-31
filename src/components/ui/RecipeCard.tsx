@@ -8,10 +8,11 @@ import {
 import coverImg from "/homepage/eggsveggies.jpg";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context";
+import { localize } from "../../utils/localize";
 
 interface RecipeCardProps {
   id: string;
-  title: { en: string; sr: string } | string; // podržava oba formata
+  title: { en: string; sr: string };
   category?: { id: string; name: string; slug: string } | null;
   cookTimeMinutes?: number;
   averageRating?: number;
@@ -30,10 +31,9 @@ export const RecipeCard = ({
   saved = false,
   onBookmarkToggle,
 }: RecipeCardProps) => {
-  const { t } = useLanguage();
+  const { lang } = useLanguage();
   const image = coverImageUrl ?? coverImg;
-  const displayTitle =
-    t(title as { en: string; sr: string }) || "Untitled Recipe";
+  const displayTitle = localize(title, lang) || (lang === "sr" ? "Recept bez naziva" : "Untitled Recipe");
   const cookTime = cookTimeMinutes > 0 ? `${cookTimeMinutes} min` : "—";
   const rating = Math.round(averageRating);
 

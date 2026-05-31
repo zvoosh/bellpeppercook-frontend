@@ -8,6 +8,7 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useAuth } from "../hooks/useAuth";
 import { api } from "../lib/axios";
 import { useLanguage } from "../context";
+import { localize } from "../utils/localize";
 
 export default function RecipeDetails() {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export default function RecipeDetails() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isBookmarked, toggle } = useBookmarks();
-  const { t: tLang, lang } = useLanguage();
+  const { lang } = useLanguage();
 
   const { data: recipeData, isLoading, error } = useRecipe(id ?? "");
   const recipe = recipeData;
@@ -125,7 +126,7 @@ export default function RecipeDetails() {
           {t("nav.explore")}
         </Link>
         <span>/</span>
-        <span className="text-white/55 truncate">{tLang(recipe.title)}</span>
+        <span className="text-white/55 truncate">{localize(recipe.title, lang)}</span>
       </div>
 
       {/* HERO */}
@@ -133,7 +134,7 @@ export default function RecipeDetails() {
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
           <img
             src={recipe.coverImageUrl ?? coverImg}
-            alt={tLang(recipe.title)}
+            alt={localize(recipe.title, lang)}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/20" />
@@ -147,7 +148,7 @@ export default function RecipeDetails() {
         <div className="flex flex-col gap-6">
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight">
-              {tLang(recipe.title)}
+              {localize(recipe.title, lang)}
             </h1>
             <button
               onClick={() => toggle(recipe.id)}
@@ -177,7 +178,7 @@ export default function RecipeDetails() {
           </div>
 
           <p className="text-white/50 text-sm leading-relaxed">
-            {tLang(recipe.description)}
+            {localize(recipe.description, lang)}
           </p>
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -194,9 +195,7 @@ export default function RecipeDetails() {
               },
               {
                 label: t("recipeDetails.difficulty"),
-                value:
-                  recipe.difficulty.charAt(0).toUpperCase() +
-                  recipe.difficulty.slice(1),
+                value: t(`common.${recipe.difficulty}`),
               },
               {
                 label: t("recipeDetails.servings"),
@@ -322,7 +321,9 @@ export default function RecipeDetails() {
                     key={ing.id}
                     className="flex items-baseline justify-between gap-4 text-sm border-b border-white/5 pb-3 last:border-0 last:pb-0"
                   >
-                    <span className="text-white/75">{ing.name}</span>
+                    <span className="text-white/75">
+                      {lang === "sr" && ing.nameSr ? ing.nameSr : ing.name}
+                    </span>
                     <span className="text-white/35 shrink-0">
                       {scaleAmount(ing.quantity)} {ing.unit}
                     </span>

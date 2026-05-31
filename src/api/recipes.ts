@@ -1,8 +1,8 @@
 import { api } from "../lib/axios";
 
 export interface CreateRecipePayload {
-  title: string;
-  description: string;
+  title: { en: string; sr: string };
+  description: { en: string; sr: string };
   prepTimeMinutes: number;
   cookTimeMinutes: number;
   servings: number;
@@ -17,9 +17,11 @@ export interface CreateRecipePayload {
   steps: {
     order: number;
     instruction: string;
+    instructionSr?: string;
   }[];
   tags?: string[];
 }
+
 export interface Recipe {
   id: string;
   title: { en: string; sr: string };
@@ -39,10 +41,12 @@ export interface Recipe {
   ingredients: {
     id: string;
     name: string;
+    nameSr?: string;
     quantity: number;
     unit: string;
+    notes: string | null;
     order: number;
-    notes?: string;
+    createdAt: string;
   }[];
   steps: {
     order: number;
@@ -51,10 +55,12 @@ export interface Recipe {
   }[];
   author: {
     id: string;
+    email: string;
+    username: string;
     firstName: string;
     lastName: string;
-    username: string;
     avatarUrl: string | null;
+    role: string;
   };
   category: {
     id: string;
@@ -62,6 +68,31 @@ export interface Recipe {
     slug: string;
   } | null;
   createdAt: string;
+  updatedAt: string;
+}
+
+// Backend ponekad vraća title/description kao JSON string umesto objekta
+function parseI18nField(
+  value: string | { en: string; sr: string },
+): { en: string; sr: string } {
+  if (typeof value === "object") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return { en: value, sr: value };
+  }
+}
+
+function mapRecipe(raw: unknown): Recipe {
+  const r = raw as Recipe & {
+    title: string | { en: string; sr: string };
+    description: string | { en: string; sr: string };
+  };
+  return {
+    ...r,
+    title: parseI18nField(r.title),
+    description: parseI18nField(r.description),
+  };
 }
 
 export const recipesApi = {
@@ -73,22 +104,26 @@ export const recipesApi = {
     page?: number;
     limit?: number;
     sortBy?: string;
+    order?: "ASC" | "DESC";
   }): Promise<{
     data: Recipe[];
     meta: { total: number; page: number; limit: number; totalPages: number };
   }> => {
     const res = await api.get("/recipes", { params });
-    return res.data;
+    return {
+      ...res.data,
+      data: (res.data.data as unknown[]).map(mapRecipe),
+    };
   },
 
   getOne: async (id: string): Promise<Recipe> => {
     const res = await api.get(`/recipes/${id}`);
-    return res.data;
+    return mapRecipe(res.data);
   },
 
   create: async (payload: CreateRecipePayload): Promise<Recipe> => {
     const res = await api.post("/recipes", payload);
-    return res.data;
+    return mapRecipe(res.data);
   },
 
   uploadCoverImage: async (id: string, file: File): Promise<Recipe> => {
@@ -97,12 +132,12 @@ export const recipesApi = {
     const res = await api.post(`/recipes/${id}/cover-image`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res.data;
+    return mapRecipe(res.data);
   },
 
   publish: async (id: string): Promise<Recipe> => {
     const res = await api.patch(`/recipes/${id}/publish`);
-    return res.data;
+    return mapRecipe(res.data);
   },
 
   update: async (
@@ -110,7 +145,7 @@ export const recipesApi = {
     payload: Partial<CreateRecipePayload>,
   ): Promise<Recipe> => {
     const res = await api.patch(`/recipes/${id}`, payload);
-    return res.data;
+    return mapRecipe(res.data);
   },
 
   remove: async (id: string): Promise<void> => {
