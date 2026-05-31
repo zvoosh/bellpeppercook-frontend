@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaRegBookmark, FaBookmark, FaStar, FaRegStar } from "react-icons/fa";
 import coverImg from "/homepage/eggsveggies.jpg";
@@ -8,15 +8,24 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useAuth } from "../hooks/useAuth";
 import { api } from "../lib/axios";
 import { useLanguage } from "../context";
-import { localize } from "../utils/localize";
+import { localize, localizeCategory } from "../utils/localize";
 
 export default function RecipeDetails() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { isBookmarked, toggle } = useBookmarks();
   const { lang } = useLanguage();
+
+  const state = location.state as { from?: string; fromName?: string } | null;
+  const from = state?.from ?? "/explore";
+  const fromLabel = from.startsWith("/profile")
+    ? (state?.fromName ?? t("nav.profile"))
+    : from === "/"
+      ? t("nav.home")
+      : t("nav.explore");
 
   const { data: recipeData, isLoading, error } = useRecipe(id ?? "");
   const recipe = recipeData;
@@ -121,10 +130,14 @@ export default function RecipeDetails() {
         <Link to="/" className="hover:text-white transition-colors">
           {t("nav.home")}
         </Link>
-        <span>/</span>
-        <Link to="/explore" className="hover:text-white transition-colors">
-          {t("nav.explore")}
-        </Link>
+        {from !== "/" && (
+          <>
+            <span>/</span>
+            <Link to={from} className="hover:text-white transition-colors">
+              {fromLabel}
+            </Link>
+          </>
+        )}
         <span>/</span>
         <span className="text-white/55 truncate">{localize(recipe.title, lang)}</span>
       </div>
@@ -140,7 +153,7 @@ export default function RecipeDetails() {
           <div className="absolute inset-0 bg-black/20" />
           {recipe.category && (
             <span className="absolute top-4 left-4 bg-green-500 text-black text-xs font-medium px-3 py-1 rounded-full">
-              {recipe.category.name}
+              {localizeCategory(recipe.category.name, lang)}
             </span>
           )}
         </div>

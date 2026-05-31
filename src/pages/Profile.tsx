@@ -169,6 +169,7 @@ export default function Profile() {
                   {...recipe}
                   saved={isBookmarked(recipe.id)}
                   onBookmarkToggle={toggle}
+                  linkState={{ fromName: `${profileUser.firstName} ${profileUser.lastName}` }}
                 />
               ))}
             </div>
@@ -188,6 +189,7 @@ export default function Profile() {
                   {...recipe}
                   saved={true}
                   onBookmarkToggle={toggle}
+                  linkState={{ fromName: `${profileUser.firstName} ${profileUser.lastName}` }}
                 />
               ))}
             </div>

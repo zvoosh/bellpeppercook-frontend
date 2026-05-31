@@ -6,9 +6,9 @@ import {
   FaRegStar,
 } from "react-icons/fa";
 import coverImg from "/homepage/eggsveggies.jpg";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../context";
-import { localize } from "../../utils/localize";
+import { localize, localizeCategory } from "../../utils/localize";
 
 interface RecipeCardProps {
   id: string;
@@ -19,6 +19,7 @@ interface RecipeCardProps {
   coverImageUrl?: string | null;
   saved?: boolean;
   onBookmarkToggle?: (id: string) => void;
+  linkState?: Record<string, string>;
 }
 
 export const RecipeCard = ({
@@ -30,8 +31,10 @@ export const RecipeCard = ({
   coverImageUrl,
   saved = false,
   onBookmarkToggle,
+  linkState,
 }: RecipeCardProps) => {
   const { lang } = useLanguage();
+  const location = useLocation();
   const image = coverImageUrl ?? coverImg;
   const displayTitle = localize(title, lang) || (lang === "sr" ? "Recept bez naziva" : "Untitled Recipe");
   const cookTime = cookTimeMinutes > 0 ? `${cookTimeMinutes} min` : "—";
@@ -40,6 +43,7 @@ export const RecipeCard = ({
   return (
     <Link
       to={`/recipes/${id}`}
+      state={{ from: location.pathname, ...linkState }}
       className="group w-full cursor-pointer bg-white/5 rounded-2xl overflow-hidden border border-white/8 hover:border-white/16 hover:bg-white/8 transition-all duration-200"
     >
       <div className="relative aspect-[10/9] overflow-hidden">
@@ -66,7 +70,7 @@ export const RecipeCard = ({
 
       <div className="p-4">
         <span className="text-xs font-medium text-green-400 uppercase tracking-wide">
-          {category?.name ?? "Uncategorized"}
+          {category ? localizeCategory(category.name, lang) : (lang === "sr" ? "Bez kategorije" : "Uncategorized")}
         </span>
         <h3 className="text-sm font-medium text-white mt-1 mb-3 leading-snug line-clamp-2">
           {displayTitle}

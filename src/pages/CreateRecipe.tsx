@@ -32,7 +32,6 @@ interface Ingredient {
 interface Step {
   id: number;
   text: string;
-  textSr: string;
 }
 
 export default function CreateRecipe() {
@@ -59,7 +58,7 @@ export default function CreateRecipe() {
     { id: 1, amount: "", unit: "g", name: "", notes: "" },
   ]);
 
-  const [steps, setSteps] = useState<Step[]>([{ id: 1, text: "", textSr: "" }]);
+  const [steps, setSteps] = useState<Step[]>([{ id: 1, text: "" }]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const addIngredient = () =>
@@ -81,12 +80,12 @@ export default function CreateRecipe() {
     );
 
   const addStep = () =>
-    setSteps((prev) => [...prev, { id: Date.now(), text: "", textSr: "" }]);
+    setSteps((prev) => [...prev, { id: Date.now(), text: "" }]);
 
   const removeStep = (id: number) =>
     setSteps((prev) => prev.filter((s) => s.id !== id));
 
-  const updateStep = (id: number, field: "text" | "textSr", value: string) =>
+  const updateStep = (id: number, field: "text", value: string) =>
     setSteps((prev) =>
       prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
     );
@@ -121,7 +120,6 @@ export default function CreateRecipe() {
       .map((s, index) => ({
         order: index + 1,
         instruction: s.text,
-        instructionSr: s.textSr || undefined,
       })),
     tags: tags
       ? tags
@@ -453,20 +451,12 @@ export default function CreateRecipe() {
                 <span className="mt-3 text-green-400 font-medium text-sm w-5 shrink-0 text-right">
                   {index + 1}
                 </span>
-                <div className="flex-1 flex flex-col gap-2">
-                  <textarea
-                    value={step.text}
-                    onChange={(e) => updateStep(step.id, "text", e.target.value)}
-                    className={`${inputClass} w-full resize-none h-20`}
-                    placeholder={t("createRecipe.stepPlaceholder", { num: index + 1 })}
-                  />
-                  <textarea
-                    value={step.textSr}
-                    onChange={(e) => updateStep(step.id, "textSr", e.target.value)}
-                    className={`${inputClass} w-full resize-none h-20`}
-                    placeholder={`Korak ${index + 1} — srpski prevod (opciono)...`}
-                  />
-                </div>
+                <textarea
+                  value={step.text}
+                  onChange={(e) => updateStep(step.id, "text", e.target.value)}
+                  className={`${inputClass} flex-1 resize-none h-20`}
+                  placeholder={t("createRecipe.stepPlaceholder", { num: index + 1 })}
+                />
                 {steps.length > 1 && (
                   <button
                     type="button"

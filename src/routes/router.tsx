@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RootLayout, ProtectedRoute } from "../components";
+import { OAuthCallback } from "../pages";
 
 export const router = createBrowserRouter([
   {
@@ -76,5 +77,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: "/oauth/callback", element: <OAuthCallback /> },
   { path: "*", element: <Navigate to={"/"} replace /> },
 ]);
