@@ -44,9 +44,8 @@ export default function CreateRecipe() {
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
   const [title, setTitle] = useState("");
-  const [titleSr, setTitleSr] = useState("");
+
   const [description, setDescription] = useState("");
-  const [descriptionSr, setDescriptionSr] = useState("");
   const [category, setCategory] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [prepTime, setPrepTime] = useState("");
@@ -99,8 +98,8 @@ export default function CreateRecipe() {
   };
 
   const buildPayload = () => ({
-    title: { en: title, sr: titleSr },
-    description: { en: description, sr: descriptionSr },
+    title: { en: title, sr: "" },
+    description: { en: description, sr: "" },
     prepTimeMinutes: parseInt(prepTime) || 0,
     cookTimeMinutes: parseInt(cookTime) || 0,
     servings: parseInt(servings) || 1,
@@ -242,13 +241,6 @@ export default function CreateRecipe() {
               className={`${inputClass} w-full`}
               placeholder="e.g. Moroccan Lamb Tagine"
             />
-            <input
-              type="text"
-              value={titleSr}
-              onChange={(e) => setTitleSr(e.target.value)}
-              className={`${inputClass} w-full mt-2`}
-              placeholder="npr. Marokanski jagnjeći tažin (srpski)"
-            />
           </div>
           <div>
             <label className={labelClass}>{t("createRecipe.labelDescription")}</label>
@@ -257,12 +249,6 @@ export default function CreateRecipe() {
               onChange={(e) => setDescription(e.target.value)}
               className={`${inputClass} w-full resize-none h-28`}
               placeholder={t("createRecipe.descriptionPlaceholder")}
-            />
-            <textarea
-              value={descriptionSr}
-              onChange={(e) => setDescriptionSr(e.target.value)}
-              className={`${inputClass} w-full resize-none h-28 mt-2`}
-              placeholder="Srpski opis jela (opciono)..."
             />
           </div>
         </div>

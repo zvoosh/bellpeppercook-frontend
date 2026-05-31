@@ -5,7 +5,7 @@ export default function Contact() {
   const { t } = useTranslation();
 
   const contacts = [
-    { label: t("contact.email"), value: "Dusan.ilic1999@gmail.com" },
+    { label: t("contact.email"), value: "dusan.ilic1999@gmail.com" },
     { label: t("contact.support"), value: "vlastimir.ilic@gmail.com" },
     { label: t("contact.telephone"), value: "+381603311553" },
   ];
