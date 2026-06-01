@@ -14,13 +14,24 @@ export default function Profile() {
   const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user: authUser } = useAuth();
-  const [activeTab, setActiveTab] = useState(t("profile.tabRecipes"));
+  const [activeTab, setActiveTab] = useState("recipes");
   const { toggle, isBookmarked, bookmarks } = useBookmarks();
 
+  console.log("activeTab", activeTab);
+
   const TABS = [
-    t("profile.tabRecipes"),
-    t("profile.tabBookmarked"),
-    t("profile.tabAbout"),
+    {
+      label: t("profile.tabRecipes"),
+      key: "recipes",
+    },
+    {
+      label: t("profile.tabBookmarked"),
+      key: "bookmarked",
+    },
+    {
+      label: t("profile.tabAbout"),
+      key: "about",
+    },
   ];
 
   const isOwnProfile = authUser?.id === id;
@@ -143,25 +154,25 @@ export default function Profile() {
 
       {/* TABS */}
       <div className="flex gap-1 border-b border-white/8 mb-8">
-        {TABS.filter(
-          (tab) => isOwnProfile || tab !== t("profile.tabBookmarked"),
-        ).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-5 py-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px ${
-              activeTab === tab
-                ? "border-green-400 text-white"
-                : "border-transparent text-white/40 hover:text-white"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+        {TABS.filter((tab) => isOwnProfile || tab.key !== "bookmarked").map(
+          (tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-5 py-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px ${
+                activeTab === tab.key
+                  ? "border-green-400 text-white"
+                  : "border-transparent text-white/40 hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ),
+        )}
       </div>
 
       {/* TAB CONTENT */}
-      {activeTab === t("profile.tabRecipes") && (
+      {activeTab === "recipes" && (
         <>
           {recipesLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
@@ -221,7 +232,7 @@ export default function Profile() {
         </>
       )}
 
-      {activeTab === t("profile.tabBookmarked") && isOwnProfile && (
+      {activeTab === "bookmarked" && isOwnProfile && (
         <>
           {bookmarkedRecipes.length === 0 ? (
             <p className="text-white/30 text-sm">{t("profile.noBookmarked")}</p>
@@ -243,7 +254,7 @@ export default function Profile() {
         </>
       )}
 
-      {activeTab === t("profile.tabAbout") && (
+      {activeTab === "about" && (
         <div className="max-w-2xl space-y-6">
           <div className="bg-white/5 border border-white/8 rounded-2xl p-8">
             <p className="text-xs uppercase tracking-widest text-white/30 font-medium mb-5">
