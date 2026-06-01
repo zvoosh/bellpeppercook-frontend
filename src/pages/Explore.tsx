@@ -12,12 +12,10 @@ const LIMIT = 30;
 
 function useDebounce(value: string, delay: number) {
   const [debounced, setDebounced] = useState(value);
-
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(value), delay);
     return () => clearTimeout(timer);
   }, [value, delay]);
-
   return debounced;
 }
 
@@ -26,6 +24,7 @@ export default function Explore() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchInput, setSearchInput] = useState("");
   const [limit, setLimit] = useState(LIMIT);
+  const [maxCookTime, setMaxCookTime] = useState<number | undefined>(undefined);
 
   const debouncedSearch = useDebounce(searchInput, 400);
 
@@ -40,6 +39,7 @@ export default function Explore() {
   const { data, isFetching, isLoading } = useRecipes({
     search: debouncedSearch || undefined,
     categoryId: selectedCategory?.id,
+    maxCookTime,
     page: 1,
     limit,
     sortBy: "createdAt",
@@ -47,10 +47,7 @@ export default function Explore() {
   });
 
   const response = data as
-    | {
-        data: Recipe[];
-        meta: { total: number; totalPages: number };
-      }
+    | { data: Recipe[]; meta: { total: number; totalPages: number } }
     | undefined;
 
   const meta = response?.meta;
@@ -69,22 +66,26 @@ export default function Explore() {
     setSearchInput("");
   };
 
-  const handleLoadMore = () => {
-    setLimit((prev) => prev + LIMIT);
-  };
+  const handleLoadMore = () => setLimit((prev) => prev + LIMIT);
 
   const handleClearSearch = () => {
     setSearchInput("");
     setLimit(LIMIT);
   };
 
+  const handleClearAll = () => {
+    setSearchInput("");
+    setMaxCookTime(undefined);
+    setLimit(LIMIT);
+  };
+
+  const isSearching = isFetching && debouncedSearch.length > 0;
+
   const FILTERS = [
     { key: "all", label: t("explore.all") },
     ...categories.map((c: Category) => ({ key: c.name.toLowerCase(), label: c.name })),
     { key: "bookmarked", label: t("explore.bookmarked") },
   ];
-
-  const isSearching = isFetching && debouncedSearch.length > 0;
 
   const subtitleCount = meta
     ? debouncedSearch
@@ -104,8 +105,8 @@ export default function Explore() {
         </p>
       </div>
 
-      {/* Filters + Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      {/* Category filters + Search */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-sm text-white/35 mr-2">{t("explore.filters")}</span>
           {FILTERS.map(({ key, label }) => (
@@ -125,12 +126,9 @@ export default function Explore() {
 
         <div className="relative sm:shrink-0">
           <input
-            type="input"
+            type="text"
             value={searchInput}
-            onChange={(e) => {
-              setSearchInput(e.target.value);
-              setLimit(LIMIT);
-            }}
+            onChange={(e) => { setSearchInput(e.target.value); setLimit(LIMIT); }}
             className="px-4 py-2 bg-white/8 border border-white/10 text-white/75 rounded-full w-full sm:w-64 text-sm placeholder:text-white/30 focus:outline-none focus:border-white/25 transition-colors pr-10"
             placeholder={t("explore.searchPlaceholder")}
           />
@@ -150,28 +148,35 @@ export default function Explore() {
         </div>
       </div>
 
-      {/* Active search chip */}
-      {debouncedSearch && (
-        <div className="flex items-center gap-2 mb-6">
-          <span className="text-sm text-white/40">{t("explore.searchingFor")}</span>
-          <span className="px-3 py-1 rounded-full text-xs bg-green-500/15 border border-green-500/30 text-green-400 flex items-center gap-2">
-            {debouncedSearch}
-            <button
-              onClick={handleClearSearch}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              ×
-            </button>
-          </span>
-        </div>
-      )}
+      {/* Cook Time Filter */}
+      <div className="flex items-center gap-2 flex-wrap mb-4">
+        <span className="text-sm text-white/35">{t("explore.cookTime")}</span>
+        {[
+          { label: t("explore.cookTimeAny"), value: undefined },
+          { label: "15 min", value: 15 },
+          { label: "30 min", value: 30 },
+          { label: "45 min", value: 45 },
+          { label: "60 min", value: 60 },
+        ].map(({ label, value }) => (
+          <button
+            key={label}
+            onClick={() => { setMaxCookTime(value); setLimit(LIMIT); }}
+            className={`px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
+              maxCookTime === value
+                ? "bg-green-500 text-black font-medium"
+                : "bg-white/5 border border-white/10 text-white/55 hover:text-white"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
 
       {/* Grid */}
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <RecipeCardSkeleton key={i} />
-          ))}
+          {Array.from({ length: 10 }).map((_, i) => <RecipeCardSkeleton key={i} />)}
         </div>
       ) : displayedRecipes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3">
@@ -183,12 +188,9 @@ export default function Explore() {
                 ? t("explore.noResults", { query: debouncedSearch })
                 : t("explore.noRecipes")}
           </p>
-          {debouncedSearch && (
-            <button
-              onClick={handleClearSearch}
-              className="text-sm text-green-400 hover:text-green-300 transition-colors"
-            >
-              {t("explore.clearSearch")}
+          {(debouncedSearch || maxCookTime) && (
+            <button onClick={handleClearAll} className="text-sm text-green-400 hover:text-green-300 transition-colors">
+              {t("explore.clearAll")}
             </button>
           )}
         </div>

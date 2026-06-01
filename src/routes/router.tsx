@@ -78,5 +78,6 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "/oauth/callback", element: <OAuthCallback /> },
+  { path: "/verify-email", lazy: async () => { const { VerifyEmail } = await import("../pages"); return { Component: VerifyEmail }; } },
   { path: "*", element: <Navigate to={"/"} replace /> },
 ]);

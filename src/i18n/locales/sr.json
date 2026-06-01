@@ -38,7 +38,17 @@
     "noRecipes": "Nema pronađenih recepata.",
     "clearSearch": "Obriši pretragu",
     "loading": "Učitavanje...",
-    "loadMore": "Učitaj još"
+    "loadMore": "Učitaj još",
+    "advancedFilters": "Filteri",
+    "cookTime": "Vreme kuvanja",
+    "cookTimeAny": "Bilo koje",
+    "cookTimeQuick": "≤15 min",
+    "cookTimeMedium": "15–30 min",
+    "cookTimeLong": "30–60 min",
+    "cookTimeExtended": "60+ min",
+    "ingredientSearch": "Sadrži sastojak...",
+    "activeFilters": "Aktivni filteri",
+    "clearAll": "Obriši sve"
   },
   "about": {
     "storyTag": "Naša priča",
@@ -94,6 +104,7 @@
     "buttonSignIn": "Prijavi se",
     "buttonCreateAccount": "Kreiraj nalog",
     "orContinueWith": "ili nastavi sa",
+    "verifyPending": "Proverite email da biste verifikovali nalog pre prijave.",
     "terms": "Uslovima korišćenja",
     "privacy": "Politikom privatnosti",
     "termsText": "Nastavljanjem prihvatate naše {{terms}} i {{privacy}}"

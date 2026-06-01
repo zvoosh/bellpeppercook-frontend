@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 export default function SignIn() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
+  const isPendingVerification = searchParams.get("verified") === "pending";
   const [tab, setTab] = useState<"signin" | "register">(
     searchParams.get("tab") === "register" ? "register" : "signin",
   );
@@ -25,6 +26,14 @@ export default function SignIn() {
 
   const isPending = loginMutation.isPending || registerMutation.isPending;
   const error = loginMutation.error || registerMutation.error;
+
+  const getBackendMessage = (err: unknown): string | null => {
+    const msg = (err as { response?: { data?: { message?: string | string[] } } })
+      ?.response?.data?.message;
+    if (!msg) return null;
+    const raw = Array.isArray(msg) ? msg[0] ?? null : msg;
+    return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : null;
+  };
 
   const inputClass =
     "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-green-500/50 transition-colors";
@@ -63,6 +72,13 @@ export default function SignIn() {
           </h1>
         </div>
 
+        {/* Pending verification banner */}
+        {isPendingVerification && (
+          <div className="mb-6 px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-xl text-sm text-green-400">
+            📧 {t("signIn.verifyPending")}
+          </div>
+        )}
+
         {/* Card */}
         <div className="bg-white/5 border border-white/8 rounded-2xl p-8">
           {/* Tabs */}
@@ -89,7 +105,7 @@ export default function SignIn() {
             <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
               {tab === "signin"
                 ? t("signIn.errorSignIn")
-                : t("signIn.errorRegister")}
+                : (getBackendMessage(registerMutation.error) ?? t("signIn.errorRegister"))}
             </div>
           )}
 

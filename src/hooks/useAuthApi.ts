@@ -17,14 +17,12 @@ export function useLogin() {
 }
 
 export function useRegister() {
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (payload: RegisterPayload) => authApi.register(payload),
-    onSuccess: ({ user, token }) => {
-      login(user, token);
-      navigate("/");
+    onSuccess: () => {
+      navigate("/signin?verified=pending");
     },
   });
 }

@@ -7,3 +7,4 @@ export { default as About } from "./About";
 export { default as Contact } from "./Contact";
 export { default as SignIn } from "./SignIn";
 export { default as OAuthCallback } from "./OAuthCallback";
+export { default as VerifyEmail } from "./VerifyEmail";

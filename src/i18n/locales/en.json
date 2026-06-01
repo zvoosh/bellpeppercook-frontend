@@ -38,7 +38,17 @@
     "noRecipes": "No recipes found.",
     "clearSearch": "Clear search",
     "loading": "Loading...",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "advancedFilters": "Filters",
+    "cookTime": "Cook time",
+    "cookTimeAny": "Any",
+    "cookTimeQuick": "≤15 min",
+    "cookTimeMedium": "15–30 min",
+    "cookTimeLong": "30–60 min",
+    "cookTimeExtended": "60+ min",
+    "ingredientSearch": "Contains ingredient...",
+    "activeFilters": "Active filters",
+    "clearAll": "Clear all"
   },
   "about": {
     "storyTag": "Our Story",
@@ -94,6 +104,7 @@
     "buttonSignIn": "Sign In",
     "buttonCreateAccount": "Create Account",
     "orContinueWith": "or continue with",
+    "verifyPending": "Check your email to verify your account before signing in.",
     "terms": "Terms",
     "privacy": "Privacy Policy",
     "termsText": "By continuing you agree to our {{terms}} and {{privacy}}"
@@ -182,6 +193,7 @@
     "leaveComment": "Leave a comment",
     "signInToComment": "Sign in to leave a comment",
     "commentPlaceholder": "Share your experience with this recipe...",
+    "noComments": "No comments yet — be the first to share your experience!",
     "posting": "Posting...",
     "postComment": "Post Comment",
     "ratingLabels": ["", "Poor", "Fair", "Good", "Great", "Excellent"],

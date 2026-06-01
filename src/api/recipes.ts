@@ -69,12 +69,16 @@ export interface Recipe {
   } | null;
   createdAt: string;
   updatedAt: string;
+  maxCookTime?: number;
+  minCookTime?: number;
+  ingredient?: string;
 }
 
 // Backend ponekad vraća title/description kao JSON string umesto objekta
-function parseI18nField(
-  value: string | { en: string; sr: string },
-): { en: string; sr: string } {
+function parseI18nField(value: string | { en: string; sr: string }): {
+  en: string;
+  sr: string;
+} {
   if (typeof value === "object") return value;
   try {
     return JSON.parse(value);
@@ -83,7 +87,7 @@ function parseI18nField(
   }
 }
 
-function mapRecipe(raw: unknown): Recipe {
+export function mapRecipe(raw: unknown): Recipe {
   const r = raw as Recipe & {
     title: string | { en: string; sr: string };
     description: string | { en: string; sr: string };
@@ -101,6 +105,8 @@ export const recipesApi = {
     categoryId?: string;
     difficulty?: string;
     authorId?: string;
+    maxCookTime?: number;
+    ingredient?: string;
     page?: number;
     limit?: number;
     sortBy?: string;

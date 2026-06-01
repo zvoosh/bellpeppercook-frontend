@@ -6,9 +6,11 @@ import coverImg from "/homepage/eggsveggies.jpg";
 import { useRecipe } from "../hooks/useRecipes";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useAuth } from "../hooks/useAuth";
-import { api } from "../lib/axios";
 import { useLanguage } from "../context";
 import { localize, localizeCategory } from "../utils/localize";
+import { useComments, useCreateComment } from "../hooks/useComments";
+import { useMyRating, useRateRecipe } from "../hooks/useRatings";
+import type { Comment } from "../api/comments";
 
 export default function RecipeDetails() {
   const { t } = useTranslation();
@@ -34,21 +36,20 @@ export default function RecipeDetails() {
   const [activeTab, setActiveTab] = useState<"ingredients" | "steps">(
     "ingredients",
   );
+  const { data: myRating } = useMyRating(id ?? "");
 
-  const [comments, setComments] = useState<
-    {
-      id: string | number;
-      author: string;
-      emoji: string;
-      date: string;
-      rating: number;
-      text: string;
-    }[]
-  >([]);
   const [commentText, setCommentText] = useState("");
-  const [commentRating, setCommentRating] = useState(0);
+  const [commentRating, setCommentRating] = useState(myRating?.score ?? 0);
   const [hoveredStar, setHoveredStar] = useState(0);
-  const [submittingComment, setSubmittingComment] = useState(false);
+
+  const { data: commentsData, isLoading: commentsLoading } = useComments(
+    id ?? "",
+  );
+  const comments: Comment[] = Array.isArray(commentsData) ? commentsData : [];
+
+  const { mutateAsync: createComment, isPending: submittingComment } =
+    useCreateComment(id ?? "");
+  const { mutateAsync: rateRecipe } = useRateRecipe(id ?? "");
 
   const ratingLabels =
     lang === "sr"
@@ -92,34 +93,18 @@ export default function RecipeDetails() {
     e.preventDefault();
     if (!commentText.trim() || commentRating === 0) return;
 
-    setSubmittingComment(true);
+    if (!user) {
+      navigate("/signin");
+      return;
+    }
+
     try {
-      await api.post(`/recipes/${recipe.id}/comments`, {
-        content: commentText.trim(),
-      });
-
-      await api.post(`/recipes/${recipe.id}/ratings`, {
-        score: commentRating,
-      });
-
-      setComments((prev) => [
-        {
-          id: Date.now(),
-          author: user ? `${user.firstName} ${user.lastName}` : "You",
-          emoji: "🙂",
-          date: "Just now",
-          rating: commentRating,
-          text: commentText.trim(),
-        },
-        ...prev,
-      ]);
-
+      await createComment(commentText.trim());
+      await rateRecipe(commentRating);
       setCommentText("");
       setCommentRating(0);
     } catch {
       navigate("/signin");
-    } finally {
-      setSubmittingComment(false);
     }
   };
 
@@ -139,7 +124,9 @@ export default function RecipeDetails() {
           </>
         )}
         <span>/</span>
-        <span className="text-white/55 truncate">{localize(recipe.title, lang)}</span>
+        <span className="text-white/55 truncate">
+          {localize(recipe.title, lang)}
+        </span>
       </div>
 
       {/* HERO */}
@@ -444,40 +431,59 @@ export default function RecipeDetails() {
         </form>
 
         {/* Comments list */}
-        <div className="space-y-4">
-          {comments.map((comment) => (
-            <div
-              key={comment.id}
-              className="bg-white/5 border border-white/8 rounded-2xl p-6"
-            >
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center text-lg shrink-0">
-                    {comment.emoji}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">
-                      {comment.author}
-                    </p>
-                    <p className="text-xs text-white/30">{comment.date}</p>
+        {commentsLoading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white/5 border border-white/8 rounded-2xl p-6 animate-pulse h-24"
+              />
+            ))}
+          </div>
+        ) : comments.length === 0 ? (
+          <p className="text-white/30 text-sm">
+            {t("recipeDetails.noComments")}
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {comments.map((comment) => (
+              <div
+                key={comment.id}
+                className="bg-white/5 border border-white/8 rounded-2xl p-6"
+              >
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                      {comment.user.avatarUrl ? (
+                        <img
+                          src={comment.user.avatarUrl}
+                          alt={comment.user.firstName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        "🙂"
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        {comment.user.firstName} {comment.user.lastName}
+                      </p>
+                      <p className="text-xs text-white/30">
+                        {new Date(comment.createdAt).toLocaleDateString(
+                          lang === "sr" ? "sr-RS" : "en-US",
+                          { month: "short", day: "numeric", year: "numeric" },
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-0.5 shrink-0">
-                  {Array.from({ length: 5 }).map((_, i) =>
-                    i < comment.rating ? (
-                      <FaStar key={i} className="text-yellow-400 text-xs" />
-                    ) : (
-                      <FaRegStar key={i} className="text-white/15 text-xs" />
-                    ),
-                  )}
-                </div>
+                <p className="text-sm text-white/60 leading-relaxed">
+                  {comment.content}
+                </p>
               </div>
-              <p className="text-sm text-white/60 leading-relaxed">
-                {comment.text}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

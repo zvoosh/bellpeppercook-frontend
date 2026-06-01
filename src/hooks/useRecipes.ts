@@ -4,12 +4,15 @@ import { recipesApi, type CreateRecipePayload } from "../api/recipes";
 export function useRecipes(params?: {
   search?: string;
   categoryId?: string;
-  authorId?: string;   // dodaj
+  authorId?: string; // dodaj
   difficulty?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
   order?: "ASC" | "DESC";
+  maxCookTime?: number;
+  minCookTime?: number;
+  ingredient?: string;
 }) {
   return useQuery({
     queryKey: ["recipes", params],

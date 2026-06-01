@@ -31,7 +31,7 @@ export default function Profile() {
     ? myRecipesData
     : ((myRecipesData as { data?: Recipe[] })?.data ?? []);
 
-  const bookmarkedRecipes = myRecipes.filter((r) => isBookmarked(r.id));
+  const bookmarkedRecipes = bookmarks.map((b) => b.recipe);
 
   const joinedDate = profileUser?.createdAt
     ? new Date(profileUser.createdAt).toLocaleDateString(
@@ -117,15 +117,15 @@ export default function Profile() {
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-3 gap-4 mb-10">
+      <div className={`grid gap-4 mb-10 ${isOwnProfile ? "grid-cols-3" : "grid-cols-2"}`}>
         {[
           { num: myRecipes.length, label: t("profile.recipesPublished") },
-          { num: isOwnProfile ? bookmarks.length : "—", label: t("profile.bookmarked") },
+          ...(isOwnProfile ? [{ num: bookmarks.length, label: t("profile.bookmarked") }] : []),
           { num: averageRating, label: t("profile.averageRating") },
         ].map(({ num, label }) => (
           <div
             key={label}
-            className="bg-white/5 border border-white/8 rounded-2xl p-6"
+            className="bg-white/5 border border-white/8 rounded-2xl p-2 py-4 text-center sm:text-start sm:p-6"
           >
             <p className="text-4xl font-semibold text-green-400 mb-1">{num}</p>
             <p className="text-white/40 text-sm">{label}</p>

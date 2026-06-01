@@ -11,6 +11,17 @@ import { Toaster } from "sonner";
 import bellpepper from "/icons/bellpepper-green.svg";
 import { useAuth } from "../../hooks/useAuth";
 
+const footerLinks = [
+  {
+    label: "Instagram",
+    link: "https://www.instagram.com/klasican_dan/",
+  },
+  {
+    label: "Facebook",
+    link: "https://www.facebook.com/dusan.ilic.945385",
+  },
+];
+
 export const RootLayout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
@@ -255,13 +266,14 @@ export const RootLayout = () => {
           <div className="border-t border-white/6 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-xs text-white/25">{t("footer.copyright")}</p>
             <div className="flex gap-5">
-              {["Instagram", "Facebook", "Twitter", "YouTube"].map((s) => (
+              {footerLinks.map((s) => (
                 <a
-                  key={s}
-                  href="#"
+                  key={s.label}
+                  href={s.link}
+                  target="_blank"
                   className="text-xs text-white/35 hover:text-white transition-colors"
                 >
-                  {s}
+                  {s.label}
                 </a>
               ))}
             </div>
