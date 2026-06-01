@@ -11,8 +11,8 @@ export default function About() {
   ];
 
   const team = [
-    { name: "Dushan Ilich", role: t("about.roleDeveloper"), emoji: "👨‍💻" },
-    { name: "Vlastimir Ilich", role: t("about.roleSupport"), emoji: "🛠️" },
+    { name: "Dušan Ilić", role: t("about.roleDeveloper"), emoji: "👨‍💻" },
+    { name: "Dušan Ilić", role: t("about.roleSupport"), emoji: "🛠️" },
     { name: "Chef Contributors", role: t("about.roleCreators"), emoji: "👨‍🍳" },
     { name: "The Community", role: t("about.roleCommunity"), emoji: "🌍" },
   ];

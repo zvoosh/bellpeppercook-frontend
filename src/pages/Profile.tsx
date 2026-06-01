@@ -3,7 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RecipeCard } from "../components";
 import { useAuth } from "../hooks/useAuth";
-import { useMyRecipes } from "../hooks/useRecipes";
+import { useMyRecipes, useDeleteRecipe } from "../hooks/useRecipes";
+import { toast } from "sonner";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useUser } from "../hooks/useUsers";
 import type { Recipe } from "../api/recipes";
@@ -27,6 +28,7 @@ export default function Profile() {
   const { data: profileUser, isLoading: userLoading } = useUser(id);
 
   const { data: myRecipesData, isLoading: recipesLoading } = useMyRecipes(id);
+  const { mutate: deleteRecipe, isPending: deletingId } = useDeleteRecipe(id);
   const myRecipes: Recipe[] = Array.isArray(myRecipesData)
     ? myRecipesData
     : ((myRecipesData as { data?: Recipe[] })?.data ?? []);
@@ -96,7 +98,9 @@ export default function Profile() {
               </span>
             )}
             <div className="flex items-center justify-center sm:justify-start gap-x-4 text-xs text-white/30">
-              <span>📅 {t("profile.joined")} {joinedDate}</span>
+              <span>
+                📅 {t("profile.joined")} {joinedDate}
+              </span>
             </div>
           </div>
         </div>
@@ -117,10 +121,14 @@ export default function Profile() {
       </div>
 
       {/* STATS */}
-      <div className={`grid gap-4 mb-10 ${isOwnProfile ? "grid-cols-3" : "grid-cols-2"}`}>
+      <div
+        className={`grid gap-4 mb-10 ${isOwnProfile ? "grid-cols-3" : "grid-cols-2"}`}
+      >
         {[
           { num: myRecipes.length, label: t("profile.recipesPublished") },
-          ...(isOwnProfile ? [{ num: bookmarks.length, label: t("profile.bookmarked") }] : []),
+          ...(isOwnProfile
+            ? [{ num: bookmarks.length, label: t("profile.bookmarked") }]
+            : []),
           { num: averageRating, label: t("profile.averageRating") },
         ].map(({ num, label }) => (
           <div
@@ -135,7 +143,9 @@ export default function Profile() {
 
       {/* TABS */}
       <div className="flex gap-1 border-b border-white/8 mb-8">
-        {TABS.filter((tab) => isOwnProfile || tab !== t("profile.tabBookmarked")).map((tab) => (
+        {TABS.filter(
+          (tab) => isOwnProfile || tab !== t("profile.tabBookmarked"),
+        ).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -164,13 +174,47 @@ export default function Profile() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               {myRecipes.map((recipe) => (
-                <RecipeCard
+                <div
                   key={recipe.id}
-                  {...recipe}
-                  saved={isBookmarked(recipe.id)}
-                  onBookmarkToggle={toggle}
-                  linkState={{ fromName: `${profileUser.firstName} ${profileUser.lastName}` }}
-                />
+                  className="relative group/card isolate overflow-hidden rounded-2xl"
+                >
+                  <RecipeCard
+                    {...recipe}
+                    saved={isBookmarked(recipe.id)}
+                    onBookmarkToggle={toggle}
+                    linkState={{
+                      fromName: `${profileUser.firstName} ${profileUser.lastName}`,
+                    }}
+                  />
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => {
+                        if (!window.confirm(t("profile.confirmDelete"))) return;
+                        deleteRecipe(recipe.id, {
+                          onSuccess: () =>
+                            toast.success(t("profile.deleteSuccess")),
+                        });
+                      }}
+                      disabled={deletingId}
+                      className="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-500/80 disabled:cursor-not-allowed cursor-pointer"
+                      title={t("profile.deleteRecipe")}
+                    >
+                      <svg
+                        className="w-3.5 h-3.5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -189,7 +233,9 @@ export default function Profile() {
                   {...recipe}
                   saved={true}
                   onBookmarkToggle={toggle}
-                  linkState={{ fromName: `${profileUser.firstName} ${profileUser.lastName}` }}
+                  linkState={{
+                    fromName: `${profileUser.firstName} ${profileUser.lastName}`,
+                  }}
                 />
               ))}
             </div>
@@ -205,7 +251,10 @@ export default function Profile() {
             </p>
             <div className="space-y-4">
               {[
-                { label: t("profile.detailUsername"), value: `@${profileUser.username}` },
+                {
+                  label: t("profile.detailUsername"),
+                  value: `@${profileUser.username}`,
+                },
                 { label: t("profile.detailMemberSince"), value: joinedDate },
                 {
                   label: t("profile.detailRole"),
@@ -221,7 +270,9 @@ export default function Profile() {
                   ? [
                       {
                         label: t("profile.detailBookmarked"),
-                        value: t("profile.recipesCount", { count: bookmarks.length }),
+                        value: t("profile.recipesCount", {
+                          count: bookmarks.length,
+                        }),
                       },
                     ]
                   : []),

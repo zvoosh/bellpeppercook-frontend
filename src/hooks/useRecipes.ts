@@ -44,6 +44,18 @@ export function useUploadCoverImage() {
       recipesApi.uploadCoverImage(id, file),
   });
 }
+export function useDeleteRecipe(userId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => recipesApi.remove(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["recipes", "mine", userId] });
+      void queryClient.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+
 export function useMyRecipes(userId: string | undefined) {
   return useQuery({
     queryKey: ["recipes", "mine", userId],
