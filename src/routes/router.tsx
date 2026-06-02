@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RootLayout, ProtectedRoute } from "../components";
-import { OAuthCallback } from "../pages";
+import { ForgotPassword, OAuthCallback, ResetPassword } from "../pages";
 
 export const router = createBrowserRouter([
   {
@@ -75,9 +75,17 @@ export const router = createBrowserRouter([
           return { Component: SignIn };
         },
       },
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "reset-password", element: <ResetPassword /> },
+      { path: "oauth/callback", element: <OAuthCallback /> },
+      {
+        path: "verify-email",
+        lazy: async () => {
+          const { VerifyEmail } = await import("../pages");
+          return { Component: VerifyEmail };
+        },
+      },
     ],
   },
-  { path: "/oauth/callback", element: <OAuthCallback /> },
-  { path: "/verify-email", lazy: async () => { const { VerifyEmail } = await import("../pages"); return { Component: VerifyEmail }; } },
   { path: "*", element: <Navigate to={"/"} replace /> },
 ]);

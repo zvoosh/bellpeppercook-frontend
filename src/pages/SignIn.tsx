@@ -28,10 +28,11 @@ export default function SignIn() {
   const error = loginMutation.error || registerMutation.error;
 
   const getBackendMessage = (err: unknown): string | null => {
-    const msg = (err as { response?: { data?: { message?: string | string[] } } })
-      ?.response?.data?.message;
+    const msg = (
+      err as { response?: { data?: { message?: string | string[] } } }
+    )?.response?.data?.message;
     if (!msg) return null;
-    const raw = Array.isArray(msg) ? msg[0] ?? null : msg;
+    const raw = Array.isArray(msg) ? (msg[0] ?? null) : msg;
     return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : null;
   };
 
@@ -105,7 +106,8 @@ export default function SignIn() {
             <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
               {tab === "signin"
                 ? t("signIn.errorSignIn")
-                : (getBackendMessage(registerMutation.error) ?? t("signIn.errorRegister"))}
+                : (getBackendMessage(registerMutation.error) ??
+                  t("signIn.errorRegister"))}
             </div>
           )}
 
@@ -131,12 +133,12 @@ export default function SignIn() {
                     <label className={labelClass} style={{ marginBottom: 0 }}>
                       {t("signIn.labelPassword")}
                     </label>
-                    <button
-                      type="button"
-                      className="text-xs text-white/30 hover:text-green-400 transition-colors cursor-pointer"
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs text-white/30 hover:text-green-400 transition-colors"
                     >
                       {t("signIn.forgotPassword")}
-                    </button>
+                    </Link>
                   </div>
                   <input
                     type="password"

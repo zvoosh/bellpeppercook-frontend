@@ -6,15 +6,16 @@ import { api } from "../lib/axios";
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
   const navigate = useNavigate();
   const { login } = useAuth();
   const { t } = useLanguage();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    token ? "loading" : "error",
+  );
 
   useEffect(() => {
-    const token = searchParams.get("token");
     if (!token) {
-      setStatus("error");
       return;
     }
 
@@ -36,7 +37,10 @@ export default function VerifyEmail() {
           <>
             <div className="w-10 h-10 border-2 border-white/20 border-t-green-400 rounded-full animate-spin mx-auto" />
             <p className="text-white/40 text-sm">
-              {t({ en: "Verifying your email...", sr: "Verifikacija email adrese..." })}
+              {t({
+                en: "Verifying your email...",
+                sr: "Verifikacija email adrese...",
+              })}
             </p>
           </>
         )}
@@ -48,7 +52,10 @@ export default function VerifyEmail() {
               {t({ en: "Email verified!", sr: "Email potvrđen!" })}
             </h2>
             <p className="text-white/40 text-sm">
-              {t({ en: "Redirecting you to the home page...", sr: "Preusmeravamo te na početnu stranicu..." })}
+              {t({
+                en: "Redirecting you to the home page...",
+                sr: "Preusmeravamo te na početnu stranicu...",
+              })}
             </p>
           </>
         )}
@@ -60,7 +67,10 @@ export default function VerifyEmail() {
               {t({ en: "Invalid link", sr: "Nevažeći link" })}
             </h2>
             <p className="text-white/40 text-sm">
-              {t({ en: "This verification link is invalid or has expired.", sr: "Ovaj verifikacioni link je nevažeći ili je istekao." })}
+              {t({
+                en: "This verification link is invalid or has expired.",
+                sr: "Ovaj verifikacioni link je nevažeći ili je istekao.",
+              })}
             </p>
             <button
               onClick={() => navigate("/signin")}

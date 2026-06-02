@@ -8,3 +8,5 @@ export { default as Contact } from "./Contact";
 export { default as SignIn } from "./SignIn";
 export { default as OAuthCallback } from "./OAuthCallback";
 export { default as VerifyEmail } from "./VerifyEmail";
+export { default as ForgotPassword} from './ForgotPassword';
+export { default as ResetPassword} from './ResetPassword';
