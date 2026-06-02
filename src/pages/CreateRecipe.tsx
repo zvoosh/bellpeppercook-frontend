@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { useCreateRecipe, useUploadCoverImage } from "../hooks/useRecipes";
 import { useCategories } from "../hooks/useCategories";
 import type { Category } from "../api/categories";
-import { recipesApi } from "../api/recipes";
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
@@ -98,8 +97,8 @@ export default function CreateRecipe() {
   };
 
   const buildPayload = () => ({
-    title: { en: title, sr: "" },
-    description: { en: description, sr: "" },
+    title: title,
+    description: description,
     prepTimeMinutes: parseInt(prepTime) || 0,
     cookTimeMinutes: parseInt(cookTime) || 0,
     servings: parseInt(servings) || 1,
@@ -142,7 +141,6 @@ export default function CreateRecipe() {
           await uploadImage({ id: recipe.id, file });
         }
 
-        await recipesApi.publish(recipe.id);
         toast.success(t("createRecipe.publishRecipe"), {
           description: t("createRecipe.pageTag"),
         });

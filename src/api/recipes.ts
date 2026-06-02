@@ -1,8 +1,8 @@
 import { api } from "../lib/axios";
 
 export interface CreateRecipePayload {
-  title: { en: string; sr: string };
-  description: { en: string; sr: string };
+  title: string;
+  description: string;
   prepTimeMinutes: number;
   cookTimeMinutes: number;
   servings: number;
