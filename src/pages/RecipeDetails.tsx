@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaRegBookmark, FaBookmark, FaStar, FaRegStar } from "react-icons/fa";
-import coverImg from "/homepage/eggsveggies.jpg";
+import coverImg from "/homepage/cardPlaceholder.png";
 import { useRecipe } from "../hooks/useRecipes";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useAuth } from "../hooks/useAuth";

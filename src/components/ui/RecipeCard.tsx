@@ -5,7 +5,7 @@ import {
   FaStar,
   FaRegStar,
 } from "react-icons/fa";
-import coverImg from "/homepage/eggsveggies.jpg";
+import coverImg from "/homepage/cardPlaceholder.png";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../context";
 import { localize, localizeCategory } from "../../utils/localize";
